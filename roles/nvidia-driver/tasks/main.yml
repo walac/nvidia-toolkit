@@ -1,0 +1,161 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for nvidia-driver
+
+- name: Verify this is a RedHat-based system
+  fail:
+    msg:
+      "This role currently only supports RedHat/Fedora/Rocky systems. Detected: {{ ansible_os_family
+      }}"
+  when: ansible_os_family != 'RedHat'
+
+- name: Display system information
+  debug:
+    msg:
+      - "Installing Nvidia drivers on {{ ansible_distribution }} {{ ansible_distribution_version }}"
+      - "Kernel version: {{ ansible_kernel }}"
+      - "Architecture: {{ ansible_architecture }}"
+
+- name: Update system packages
+  dnf:
+    name: "*"
+    state: latest
+    update_cache: true
+  tags: [system_update]
+
+- name: Install kernel development packages
+  dnf:
+    name:
+      - kernel-devel
+      - kernel-headers
+      - gcc
+      - make
+      - dkms
+      - elfutils-libelf-devel
+    state: present
+
+- name: Check running kernel version
+  command: uname -r
+  register: running_kernel
+  changed_when: false
+
+- name: Check installed kernel-devel version
+  shell: rpm -q kernel-devel | grep $(uname -r) | wc -l
+  register: kernel_devel_match
+  changed_when: false
+  failed_when: false
+
+- name: Display kernel version compatibility
+  debug:
+    msg: >-
+      {{ 'Kernel-devel matches running kernel' if kernel_devel_match.stdout != '0' else 'WARNING:
+      kernel-devel does not match running kernel. A reboot may be required.' }}
+
+- name: Set distribution-specific repository paths
+  set_fact:
+    repo_dist_id: "{{ 'fedora' if ansible_distribution == 'Fedora' else 'el' }}"
+
+- name: Check if RPM Fusion repositories are enabled
+  command: dnf repolist
+  register: dnf_repolist
+  changed_when: false
+
+- name: Enable RPM Fusion Free repository
+  dnf:
+    name:
+      "https://mirrors.rpmfusion.org/free/{{ repo_dist_id }}/rpmfusion-free-release-{{
+      ansible_distribution_major_version }}.noarch.rpm"
+    state: present
+    disable_gpg_check: true
+  when: "'rpmfusion-free' not in dnf_repolist.stdout"
+
+- name: Enable RPM Fusion Non-Free repository
+  dnf:
+    name:
+      "https://mirrors.rpmfusion.org/nonfree/{{ repo_dist_id }}/rpmfusion-nonfree-release-{{
+      ansible_distribution_major_version }}.noarch.rpm"
+    state: present
+    disable_gpg_check: true
+  when: "'rpmfusion-nonfree' not in dnf_repolist.stdout"
+
+- name: Update DNF cache after adding RPM Fusion
+  dnf:
+    update_cache: true
+  when: "'rpmfusion-nonfree' not in dnf_repolist.stdout"
+
+- name: Check if nouveau is currently loaded
+  shell: lsmod | grep nouveau
+  register: nouveau_loaded
+  changed_when: false
+  failed_when: false
+
+- name: Display nouveau status
+  debug:
+    msg:
+      "{{ 'WARNING: nouveau driver is currently loaded' if nouveau_loaded.rc == 0 else 'nouveau
+      driver is not loaded' }}"
+
+- name: Create nouveau blacklist configuration
+  copy:
+    dest: /etc/modprobe.d/blacklist-nouveau.conf
+    content: |
+      # Blacklist nouveau driver to allow Nvidia proprietary driver
+      blacklist nouveau
+      options nouveau modeset=0
+    owner: root
+    group: root
+    mode: "0644"
+  when: nvidia_force_nouveau_blacklist | default(true)
+  notify: "driver configuration changed"
+
+- name: Install Nvidia driver packages from RPM Fusion
+  dnf:
+    name: "{{ nvidia_driver_packages }}"
+    state: present
+    enablerepo: rpmfusion-nonfree
+  notify: "driver configuration changed"
+  register: nvidia_install
+
+- name: Wait for akmods to build kernel modules
+  command: akmods --force
+  register: akmods_build
+  changed_when: "'Rebuilding' in akmods_build.stdout or 'Building' in akmods_build.stdout"
+  failed_when: akmods_build.rc != 0
+  when: nvidia_install.changed
+  tags: [akmods]
+
+- name: Display akmods build output
+  debug:
+    var: akmods_build.stdout_lines
+  when: akmods_build.changed
+
+- name: Check if nvidia kernel module exists
+  stat:
+    path: "/lib/modules/{{ ansible_kernel }}/extra/nvidia/nvidia.ko"
+  register: nvidia_module
+
+- name: Display nvidia module status
+  debug:
+    msg:
+      "{{ 'Nvidia kernel module built successfully' if nvidia_module.stat.exists else 'WARNING:
+      Nvidia kernel module not found - may require reboot' }}"
+
+- name: Enable nvidia-persistenced service
+  systemd:
+    name: nvidia-persistenced
+    enabled: true
+    state: started
+  failed_when: false
+  when: nvidia_module.stat.exists
+
+- name: Create modprobe nvidia configuration
+  copy:
+    dest: /etc/modprobe.d/nvidia.conf
+    content: |
+      # Nvidia driver options
+      options nvidia NVreg_PreserveVideoMemoryAllocations=1
+      options nvidia-drm modeset=1
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "driver configuration changed"

@@ -1,0 +1,33 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for inference-stack
+
+# Ollama version (check https://github.com/ollama/ollama/releases)
+ollama_version: "0.15.6"
+
+# Ollama binary download URL
+ollama_binary_url:
+  "https://github.com/ollama/ollama/releases/download/v{{ ollama_version }}/ollama-linux-amd64"
+
+# Ollama system user and group
+ollama_user: "ollama"
+ollama_group: "ollama"
+
+# Data and model storage directories
+ollama_data_dir: "/var/lib/ollama"
+ollama_models_dir: "{{ ollama_data_dir }}/models"
+
+# Service configuration
+ollama_host: "0.0.0.0" # Listen on all interfaces (use 127.0.0.1 for local only)
+ollama_port: "11434"
+
+# Validation
+ollama_validate_install: true # Check if service is healthy after installation
+
+# Optional: Pre-pull models during installation
+# Set to empty list to skip model pulling
+ollama_prepull_models: []
+# Example:
+# ollama_prepull_models:
+#   - llama2:7b
+#   - codellama:7b

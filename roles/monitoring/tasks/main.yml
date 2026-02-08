@@ -1,0 +1,120 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for monitoring
+
+- name: Display monitoring installation information
+  debug:
+    msg:
+      - "Installing GPU monitoring tools"
+      - "CLI tools: {{ monitoring_cli_tools | join(', ') }}"
+
+- name: Install lightweight CLI monitoring tools
+  dnf:
+    name: "{{ monitoring_cli_tools }}"
+    state: present
+
+- name: Verify nvtop installation
+  command: nvtop --version
+  register: nvtop_version
+  changed_when: false
+  failed_when: false
+
+- name: Display nvtop status
+  debug:
+    msg:
+      "{{ 'nvtop installed: ' + nvtop_version.stdout if nvtop_version.rc == 0 else 'nvtop not
+      available - check EPEL/RPM Fusion repos' }}"
+
+- name: Verify btop installation
+  command: btop --version
+  register: btop_version
+  changed_when: false
+  failed_when: false
+
+- name: Display btop status
+  debug:
+    msg:
+      "{{ 'btop installed: ' + btop_version.stdout if btop_version.rc == 0 else 'btop not available'
+      }}"
+
+- name: Create monitoring stack directory
+  file:
+    path: "{{ ansible_env.HOME }}/gpu-monitoring"
+    state: directory
+    mode: "0755"
+  become: false
+  when: install_monitoring_stack | default(false)
+
+- name: Deploy docker-compose for monitoring stack
+  template:
+    src: docker-compose-monitoring.yml.j2
+    dest: "{{ ansible_env.HOME }}/gpu-monitoring/docker-compose.yml"
+    mode: "0644"
+  become: false
+  when: install_monitoring_stack | default(false)
+
+- name: Deploy Prometheus configuration
+  template:
+    src: prometheus.yml.j2
+    dest: "{{ ansible_env.HOME }}/gpu-monitoring/prometheus.yml"
+    mode: "0644"
+  become: false
+  when: install_monitoring_stack | default(false)
+
+- name: Create README for monitoring stack
+  copy:
+    dest: "{{ ansible_env.HOME }}/gpu-monitoring/README.md"
+    mode: "0644"
+    content: |
+      # GPU Monitoring Stack
+
+      This directory contains an optional full monitoring stack with:
+      - DCGM Exporter (Nvidia GPU metrics)
+      - Prometheus (metrics collection)
+      - Grafana (visualization dashboards)
+
+      ## Quick Start
+
+      Start the stack:
+      ```bash
+      cd ~/gpu-monitoring
+      podman-compose up -d   # or docker-compose up -d
+      ```
+
+      Access the services:
+      - Grafana: http://localhost:{{ grafana_port }} (admin/admin)
+      - Prometheus: http://localhost:{{ prometheus_port }}
+      - DCGM Metrics: http://localhost:9400/metrics
+
+      ## Stop the stack
+
+      ```bash
+      podman-compose down   # or docker-compose down
+      ```
+
+      ## Add Grafana Dashboard
+
+      1. Login to Grafana
+      2. Add Prometheus data source (http://prometheus:9090)
+      3. Import dashboard ID: 12239 (Nvidia DCGM Exporter Dashboard)
+  become: false
+  when: install_monitoring_stack | default(false)
+
+- name: Display monitoring usage instructions
+  debug:
+    msg:
+      - "GPU Monitoring tools installed successfully"
+      - ""
+      - "Usage:"
+      - "  nvtop          - Interactive GPU monitoring (like htop for GPUs)"
+      - "  btop           - Modern system resource monitor with GPU support"
+      - "  nvidia-smi     - Nvidia's built-in monitoring tool"
+      - "  nvidia-smi -l 1  - Continuous monitoring (1 second interval)"
+      - ""
+      - "Tips:"
+      - "  - Run nvtop while training models to watch GPU utilization"
+      - "  - btop provides CPU, RAM, and GPU stats in one view"
+      - "  - Use 'watch -n 1 nvidia-smi' for simple continuous monitoring"
+      - ""
+      - "{{ 'Optional monitoring stack deployed to ~/gpu-monitoring' if install_monitoring_stack
+        else 'Full monitoring stack disabled (set install_monitoring_stack: true to enable)' }}"

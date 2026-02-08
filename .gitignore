@@ -1,0 +1,64 @@
+# Ansible
+*.retry
+*.log
+.ansible/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Credentials and secrets
+*.pem
+*.key
+*.crt
+secrets/
+vault_pass.txt
+ansible_vault_pass
+
+# Fact cache
+/tmp/ansible_facts
+
+# Local test files
+test_inventory.yml
+local_test.yml
+
+# Downloaded models (uncomment if you don't want to track them)
+# /opt/models/
+
+# AI Tools
+
+# PAL generated code
+pal_generated.code
+
+CLAUDE.md
+.serena
+.claude
+GEMINI.md
+

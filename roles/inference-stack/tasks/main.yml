@@ -1,0 +1,142 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for inference-stack
+
+- name: Display Ollama installation information
+  debug:
+    msg:
+      - "Installing Ollama {{ ollama_version }}"
+      - "Data directory: {{ ollama_data_dir }}"
+      - "Models directory: {{ ollama_models_dir }}"
+      - "Service will listen on {{ ollama_host }}:{{ ollama_port }}"
+
+- name: Create ollama system group
+  group:
+    name: "{{ ollama_group }}"
+    state: present
+    system: true
+
+- name: Create ollama system user
+  user:
+    name: "{{ ollama_user }}"
+    group: "{{ ollama_group }}"
+    shell: /sbin/nologin
+    system: true
+    create_home: false
+    home: "{{ ollama_data_dir }}"
+    comment: "Ollama service user"
+
+- name: Create ollama data directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ollama_user }}"
+    group: "{{ ollama_group }}"
+    mode: "0755"
+  loop:
+    - "{{ ollama_data_dir }}"
+    - "{{ ollama_models_dir }}"
+
+- name: Download Ollama binary
+  get_url:
+    url: "{{ ollama_binary_url }}"
+    dest: /usr/local/bin/ollama
+    owner: root
+    group: root
+    mode: "0755"
+  notify: Restart ollama
+  register: ollama_binary
+
+- name: Verify Ollama binary
+  command: /usr/local/bin/ollama --version
+  register: ollama_version_check
+  changed_when: false
+  when: ollama_binary.changed
+
+- name: Display Ollama version
+  debug:
+    msg: "{{ ollama_version_check.stdout }}"
+  when: ollama_version_check is defined and ollama_version_check.stdout is defined
+
+- name: Configure Ollama systemd service
+  template:
+    src: ollama.service.j2
+    dest: /etc/systemd/system/ollama.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart ollama
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: true
+
+- name: Enable and start Ollama service
+  systemd:
+    name: ollama
+    state: started
+    enabled: true
+
+- name: Wait for Ollama API to be responsive
+  uri:
+    url: "http://127.0.0.1:{{ ollama_port }}"
+    method: GET
+    status_code: 200
+  register: ollama_health
+  until: ollama_health.status == 200
+  retries: 15
+  delay: 2
+  when: ollama_validate_install | default(true)
+
+- name: Check Ollama service status
+  command: systemctl is-active ollama
+  register: ollama_status
+  changed_when: false
+  failed_when: false
+
+- name: Display Ollama service status
+  debug:
+    msg: "Ollama service is {{ ollama_status.stdout }}"
+
+- name: Check for GPU detection in logs
+  shell: journalctl -u ollama --no-pager -n 100 | grep -i "gpu\|cuda" | tail -5
+  register: gpu_logs
+  changed_when: false
+  failed_when: false
+  when: ollama_validate_install | default(true)
+
+- name: Display GPU detection logs
+  debug:
+    msg:
+      "{{ gpu_logs.stdout_lines if gpu_logs.stdout_lines else 'No GPU logs found yet - check:
+      journalctl -u ollama' }}"
+  when: ollama_validate_install | default(true) and gpu_logs is defined
+
+- name: Pull requested models
+  command: /usr/local/bin/ollama pull {{ item }}
+  loop: "{{ ollama_prepull_models }}"
+  when: ollama_prepull_models is defined and ollama_prepull_models | length > 0
+  become: true
+  become_user: "{{ ollama_user }}"
+  environment:
+    OLLAMA_HOST: "{{ ollama_host }}:{{ ollama_port }}"
+
+- name: Display usage instructions
+  debug:
+    msg:
+      - "Ollama is installed and running"
+      - ""
+      - "Test the service:"
+      - "  curl http://localhost:{{ ollama_port }}"
+      - ""
+      - "List models:"
+      - "  ollama list"
+      - ""
+      - "Pull a model:"
+      - "  ollama pull llama2:7b"
+      - ""
+      - "Run inference:"
+      - "  ollama run llama2:7b"
+      - ""
+      - "Check service logs:"
+      - "  journalctl -u ollama -f"

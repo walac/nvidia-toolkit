@@ -1,0 +1,16 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for monitoring
+
+# Lightweight CLI monitoring tools
+monitoring_cli_tools:
+  - nvtop # GPU monitoring (like htop for GPUs)
+  - btop # Modern system resource monitor
+
+# Optional: Full monitoring stack (disabled by default)
+install_monitoring_stack: false
+
+# Prometheus GPU exporter (optional)
+nvidia_exporter_version: "1.2.0"
+prometheus_port: 9090
+grafana_port: 3000

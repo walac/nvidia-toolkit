@@ -1,0 +1,10 @@
+# Ansible managed: /etc/profile.d/cuda.sh
+# CUDA environment variables for {{ ansible_hostname }}
+
+export CUDA_HOME={{ cuda_home }}
+export PATH=$PATH:$CUDA_HOME/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CUDA_HOME/lib64:$CUDA_HOME/lib
+
+# Additional CUDA paths for some applications
+export CUDA_PATH=$CUDA_HOME
+export CUDA_ROOT=$CUDA_HOME

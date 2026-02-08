@@ -1,0 +1,17 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for nvidia-driver
+
+# Fedora/RHEL Nvidia driver packages from RPM Fusion
+nvidia_driver_packages:
+  - akmod-nvidia # Automatic kernel module building
+  - xorg-x11-drv-nvidia-cuda # CUDA support (essential for ML/AI)
+  - xorg-x11-drv-nvidia-power # Power management for Nvidia GPUs
+  - nvidia-settings # GUI configuration tool
+  - vdpau-driver-all # Video acceleration
+
+# Skip reboot after installation (useful for testing)
+nvidia_driver_skip_reboot: false
+
+# Force nouveau blacklist (RPM Fusion usually handles this)
+nvidia_force_nouveau_blacklist: true

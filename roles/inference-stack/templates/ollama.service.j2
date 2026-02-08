@@ -1,0 +1,34 @@
+# Ansible managed: Ollama systemd service
+# DO NOT EDIT MANUALLY
+
+[Unit]
+Description=Ollama Service - Local LLM Inference
+Documentation=https://github.com/ollama/ollama
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/ollama serve
+User={{ ollama_user }}
+Group={{ ollama_group }}
+Restart=always
+RestartSec=3
+
+# Environment variables
+Environment="OLLAMA_HOST={{ ollama_host }}:{{ ollama_port }}"
+Environment="OLLAMA_MODELS={{ ollama_models_dir }}"
+Environment="PATH=/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin"
+
+# Nvidia GPU support (auto-detected by Ollama when CUDA libs are present)
+Environment="NVIDIA_VISIBLE_DEVICES=all"
+Environment="NVIDIA_DRIVER_CAPABILITIES=compute,utility"
+
+# Working directory
+WorkingDirectory={{ ollama_data_dir }}
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

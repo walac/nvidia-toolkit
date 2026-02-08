@@ -1,0 +1,176 @@
+---
+# ============================================
+# Main Playbook: Nvidia AI Toolkit Setup
+# ============================================
+# This is the master playbook that orchestrates
+# the complete Nvidia GPU infrastructure setup
+#
+# Usage:
+#   ansible-playbook playbooks/main.yml
+#
+# Tags available:
+#   - preflight: Pre-flight checks only
+#   - driver: Nvidia driver installation
+#   - cuda: CUDA toolkit installation
+#   - containers: Container runtime setup
+#   - ml: Machine learning frameworks
+#   - inference: Inference tools
+#   - validation: Post-installation tests
+# ============================================
+
+- name: Nvidia GPU Toolkit Complete Setup
+  hosts: all
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Display setup information
+      debug:
+        msg:
+          - "Starting Nvidia Toolkit Setup"
+          - "Target OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+          - "Python: {{ ansible_python_version }}"
+          - "Architecture: {{ ansible_architecture }}"
+      tags: always
+
+    - name: Pre-flight checks
+      block:
+        - name: Check if running as root or with sudo
+          assert:
+            that: ansible_user_uid == 0 or ansible_become
+            fail_msg: "This playbook requires root privileges or sudo access"
+            success_msg: "Privilege escalation available"
+
+        - name: Detect GPU hardware
+          shell: lspci | grep -i nvidia
+          register: gpu_check
+          changed_when: false
+          failed_when: false
+
+        - name: Verify GPU presence
+          assert:
+            that: gpu_check.rc == 0
+            fail_msg: "No Nvidia GPU detected on this system"
+            success_msg: "Nvidia GPU detected: {{ gpu_check.stdout_lines[0] }}"
+
+        - name: Check kernel headers are available
+          package:
+            name:
+              "{{ 'linux-headers-' + ansible_kernel if ansible_os_family == 'Debian' else
+              'kernel-devel' }}"
+            state: present
+          check_mode: true
+          register: kernel_headers_check
+
+        - name: Display kernel headers status
+          debug:
+            msg:
+              "Kernel headers check: {{ 'installed' if not kernel_headers_check.changed else 'need
+              installation' }}"
+      tags: ["preflight", "always"]
+
+    - name: System preparation
+      block:
+        - name: Update package cache (Debian/Ubuntu)
+          apt:
+            update_cache: true
+            cache_valid_time: 3600
+          when: ansible_os_family == 'Debian'
+
+        - name: Update package cache (RedHat/Fedora)
+          dnf:
+            update_cache: true
+          when: ansible_os_family == 'RedHat'
+
+        - name: Install kernel headers
+          package:
+            name:
+              "{{ 'linux-headers-' + ansible_kernel if ansible_os_family == 'Debian' else
+              'kernel-devel' }}"
+            state: present
+
+        - name: Install build essentials
+          package:
+            name: "{{ build_packages }}"
+            state: present
+          when: install_build_tools | default(true)
+      tags: ["system-prep"]
+
+  roles:
+    # Phase 1: Nvidia Driver
+    - role: nvidia-driver
+      when: true
+      tags: ["driver", "nvidia"]
+
+    # Phase 2: CUDA Toolkit
+    - role: cuda
+      when: true
+      tags: ["cuda", "toolkit"]
+
+    # Phase 3: ML Frameworks
+    - role: ml-python
+      when: install_ml | default(true)
+      tags: ["ml", "python", "frameworks"]
+
+    # Phase 4: Inference Stack
+    - role: inference-stack
+      when: install_inference | default(true)
+      tags: ["inference", "ollama"]
+
+    # Phase 5: Monitoring (Optional Enhancements)
+    - role: monitoring
+      when: install_monitoring | default(true)
+      tags: ["monitoring", "observability"]
+
+  post_tasks:
+    - name: Run validation tests
+      block:
+        - name: Test nvidia-smi
+          command: nvidia-smi
+          register: nvidia_smi_output
+          changed_when: false
+          failed_when: nvidia_smi_output.rc != 0
+
+        - name: Display GPU information
+          debug:
+            msg: "{{ nvidia_smi_output.stdout_lines }}"
+
+        - name: Test CUDA compiler
+          command: nvcc --version
+          register: nvcc_output
+          changed_when: false
+          failed_when: nvcc_output.rc != 0
+          when: "'cuda' in ansible_run_tags or 'all' in ansible_run_tags"
+
+        - name: Display CUDA version
+          debug:
+            msg: "{{ nvcc_output.stdout_lines }}"
+          when: nvcc_output is defined and nvcc_output.rc == 0
+      tags: ["validation", "test"]
+      when: enable_validation | default(true)
+
+    - name: Generate setup summary
+      block:
+        - name: Create summary
+          set_fact:
+            setup_summary:
+              - "=========================================="
+              - "Nvidia Toolkit Setup Complete"
+              - "=========================================="
+              - "Driver Version: {{ nvidia_driver_version }}"
+              - "CUDA Version: {{ cuda_version }}"
+              - "ML Frameworks: {{ 'Installed' if install_ml else 'Skipped' }}"
+              - "Inference Tools: {{ inference_tools | join(', ') if install_inference else
+                'Skipped' }}"
+              - ""
+              - "Next Steps:"
+              - "  1. Verify GPU access: nvidia-smi"
+              - "  2. Test CUDA: nvcc --version"
+              - "  3. Test Python GPU: python3 -c 'import torch; print(torch.cuda.is_available())'"
+              - "  4. Start using your GPU-accelerated environment!"
+              - "=========================================="
+
+        - name: Display summary
+          debug:
+            msg: "{{ setup_summary }}"
+      tags: ["always"]

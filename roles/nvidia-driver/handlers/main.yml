@@ -1,0 +1,21 @@
+#SPDX-License-Identifier: MIT-0
+---
+# handlers file for nvidia-driver
+
+- name: Rebuild initramfs
+  command: dracut --force
+  listen: "driver configuration changed"
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: true
+  listen: "driver configuration changed"
+
+- name: Reboot system
+  reboot:
+    msg: "Rebooting to load Nvidia drivers and blacklist nouveau"
+    pre_reboot_delay: 5
+    post_reboot_delay: 30
+    reboot_timeout: 600
+  when: not (nvidia_driver_skip_reboot | default(false))
+  listen: "driver configuration changed"

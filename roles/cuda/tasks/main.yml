@@ -1,0 +1,136 @@
+#SPDX-License-Identifier: MIT-0
+---
+# tasks file for cuda
+
+- name: Verify this is a RedHat-based system
+  fail:
+    msg:
+      "This role currently only supports RedHat/Fedora/Rocky systems. Detected: {{ ansible_os_family
+      }}"
+  when: ansible_os_family != 'RedHat'
+
+- name: Display CUDA installation information
+  debug:
+    msg:
+      - "Installing CUDA {{ cuda_version }} on {{ ansible_distribution }} {{
+        ansible_distribution_version }}"
+      - "CUDA Home will be: {{ cuda_home }}"
+
+- name: Set distribution-specific CUDA repository paths
+  set_fact:
+    cuda_dist_id: "{{ 'fedora' if ansible_distribution == 'Fedora' else 'rhel' }}"
+    # Logic:
+    # 1. If Fedora AND version <= max_supported -> Use system version
+    # 2. If NOT Fedora (RHEL/Rocky/AlmaLinux) -> Use system version
+    # 3. If Fedora AND version > max_supported -> Fallback to max_supported
+    cuda_dist_version: >-
+      {{
+        ansible_distribution_major_version
+        if (
+          (ansible_distribution == 'Fedora' and (ansible_distribution_major_version | int) <=
+      (cuda_fedora_max_version | int))
+          or ansible_distribution != 'Fedora'
+        )
+        else cuda_fedora_max_version
+      }}
+
+- name: Display repository information
+  debug:
+    msg:
+      "Using CUDA repository for {{ cuda_dist_id }}{{ cuda_dist_version }} (running on {{
+      ansible_distribution }} {{ ansible_distribution_major_version }})"
+
+- name: Add Nvidia CUDA Repository
+  yum_repository:
+    name: cuda
+    description: Nvidia CUDA Repository
+    baseurl:
+      "https://developer.download.nvidia.com/compute/cuda/repos/{{ cuda_dist_id }}{{
+      cuda_dist_version }}/x86_64/"
+    gpgkey:
+      "https://developer.download.nvidia.com/compute/cuda/repos/{{ cuda_dist_id }}{{
+      cuda_dist_version }}/x86_64/D42D0685.pub"
+    gpgcheck: true
+    enabled: true
+    # CRITICAL: Exclude driver packages to prevent conflict with RPM Fusion akmods
+    # This forces CUDA to use the already-installed RPM Fusion drivers
+    exclude:
+      "xorg-x11-drv-nvidia* kmod-nvidia* akmod-nvidia* nvidia-driver* nvidia-settings*
+      *cuda-drivers* nvidia-kmod-common*"
+
+- name: Update DNF cache for CUDA repository
+  dnf:
+    update_cache: true
+
+- name: Install CUDA Toolkit and Deep Learning Libraries
+  dnf:
+    name: "{{ cuda_packages }}"
+    state: present
+  register: cuda_install
+
+- name: Create /usr/local/cuda symlink
+  file:
+    src: "{{ cuda_home }}"
+    dest: "{{ cuda_symlink }}"
+    state: link
+    force: true
+  when: cuda_create_symlink | default(true)
+
+- name: Setup CUDA environment variables
+  template:
+    src: cuda.sh.j2
+    dest: /etc/profile.d/cuda.sh
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Source environment to make CUDA available
+  shell: source /etc/profile.d/cuda.sh
+  args:
+    executable: /bin/bash
+  changed_when: false
+
+- name: Check if nvcc exists
+  stat:
+    path: "{{ cuda_home }}/bin/nvcc"
+  register: nvcc_binary
+
+- name: Verify CUDA compiler (nvcc)
+  command: "{{ cuda_home }}/bin/nvcc --version"
+  register: nvcc_check
+  changed_when: false
+  when: nvcc_binary.stat.exists
+
+- name: Display CUDA version
+  debug:
+    msg: "{{ nvcc_check.stdout_lines }}"
+  when: nvcc_check is defined and nvcc_check.stdout_lines is defined
+
+- name: Check for CUDA libraries
+  stat:
+    path: "{{ cuda_home }}/lib64/libcudart.so"
+  register: cuda_lib
+
+- name: Display CUDA installation status
+  debug:
+    msg:
+      "{{ 'CUDA installation successful' if cuda_lib.stat.exists else 'WARNING: CUDA libraries not
+      found' }}"
+
+- name: Check for cuDNN library
+  stat:
+    path: "/usr/lib64/libcudnn.so"
+  register: cudnn_lib
+
+- name: Display cuDNN status
+  debug:
+    msg: "{{ 'cuDNN installed' if cudnn_lib.stat.exists else 'cuDNN not found' }}"
+
+- name: Check for NCCL library
+  stat:
+    path: "/usr/lib64/libnccl.so"
+  register: nccl_lib
+
+- name: Display NCCL status
+  debug:
+    msg: "{{ 'NCCL installed' if nccl_lib.stat.exists else 'NCCL not found' }}"

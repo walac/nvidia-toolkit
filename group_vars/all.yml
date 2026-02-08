@@ -1,0 +1,132 @@
+---
+# ============================================
+# Global Variables for Nvidia Toolkit Setup
+# ============================================
+# These variables apply to all hosts unless overridden
+# in group_vars/<group>.yml or host_vars/<host>.yml
+
+# ============================================
+# System Configuration
+# ============================================
+target_os_family: "{{ ansible_os_family }}"
+package_state: present # or 'latest' for always updating packages
+require_reboot: true
+
+# ============================================
+# Nvidia Driver Configuration
+# ============================================
+nvidia_driver_version: "latest" # Recommended stable version, or use "latest"
+nouveau_blacklist: true # Blacklist open-source nouveau driver
+nvidia_persistence_mode: true # Keep driver loaded across reboots
+
+# ============================================
+# CUDA Toolkit Configuration
+# ============================================
+cuda_version: "13.1"
+cuda_install_path: "/usr/local/cuda"
+cudnn_version: "8.9"
+cudnn_install: true
+
+# Additional CUDA components
+nccl_version: "2.29.3"
+nccl_install: true
+tensorrt_install: false
+tensorrt_version: "10.15"
+
+# CUDA Samples for testing
+install_cuda_samples: true
+install_cuda_gdb: true
+install_nsight: false
+
+# ============================================
+# ML Frameworks Configuration
+# ============================================
+# ML framework installation disabled - user manages Python environments manually
+install_ml: false
+
+# Note: PyTorch, TensorFlow, and other ML frameworks should be installed
+# manually by the user according to their specific requirements
+
+# ============================================
+# Inference Tools Configuration
+# ============================================
+install_inference: true
+
+# Ollama - uses pre-built binaries (no source compilation)
+ollama_install: true
+ollama_install_path: "/usr/local/bin"
+ollama_models:
+  - llama2:7b
+  - codellama:7b
+
+# Note: llama.cpp and vLLM are not included as they require
+# source compilation or complex setup. Install manually if needed.
+
+# ============================================
+# Storage and Paths
+# ============================================
+model_cache_dir: "/opt/models"
+huggingface_cache: "/opt/models/huggingface"
+ollama_model_dir: "/opt/models/ollama"
+
+# Create model directories
+create_model_dirs: true
+model_dir_owner: root
+model_dir_group: root
+model_dir_mode: "0755"
+
+# ============================================
+# Development Environment
+# ============================================
+# Build tools for CUDA development
+install_build_tools: true
+build_packages:
+  - gcc
+  - gcc-c++
+  - make
+  - cmake
+  - git
+  - wget
+  - curl
+
+# ============================================
+# User Configuration
+# ============================================
+create_dev_user: false
+dev_username: "mldev"
+dev_user_groups:
+  - docker
+  - video
+  - sudo
+
+# ============================================
+# Monitoring and Validation
+# ============================================
+enable_validation: true
+validation_tests:
+  - nvidia_smi
+  - cuda_compile
+  - python_gpu_detection
+  - container_gpu_access
+
+# GPU Monitoring (Phase 7: Optional Enhancements)
+install_monitoring: true # Lightweight CLI tools (nvtop, btop)
+install_monitoring_stack: false # Full Prometheus/Grafana stack (optional)
+
+# ============================================
+# Security and Compliance
+# ============================================
+# Secure boot handling
+check_secure_boot: true
+fail_on_secure_boot: false # Set to true if secure boot must be disabled
+
+# SELinux/AppArmor
+selinux_permissive: false
+apparmor_complain_mode: false
+
+# ============================================
+# Role Metadata
+# ============================================
+# Common metadata for all Ansible Galaxy roles
+role_author: "Wander Lairson Costa"
+role_license: "MIT"

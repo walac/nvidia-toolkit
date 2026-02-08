@@ -1,0 +1,36 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for cuda
+
+# CUDA version from group_vars (e.g., "12.3")
+# This gets overridden by group_vars/all.yml
+cuda_version: "{{ cuda_version | default('12.3') }}"
+
+# Convert version "12.3" to "12-3" for package names
+cuda_package_version: "{{ cuda_version | replace('.', '-') }}"
+
+# Maximum Fedora version currently supported by NVIDIA's CUDA repository
+# NVIDIA often lags behind Fedora releases. When a new Fedora version is released
+# (e.g., F43), we often need to point to the repository of the previous stable
+# version (e.g., F42) until NVIDIA updates their repos.
+# If the detected Fedora version is newer than this, the role will fall back to
+# using this version's repository to ensure compatibility.
+cuda_fedora_max_version: "42"
+
+# CUDA toolkit and deep learning packages
+cuda_packages:
+  - "cuda-toolkit-{{ cuda_package_version }}"
+  - libcudnn8
+  - libcudnn8-devel
+  - libnccl
+  - libnccl-devel
+
+# CUDA installation path
+cuda_home: "/usr/local/cuda-{{ cuda_version }}"
+cuda_symlink: "/usr/local/cuda"
+
+# Whether to create /usr/local/cuda symlink
+cuda_create_symlink: true
+
+# Install CUDA samples for testing
+cuda_install_samples: true
