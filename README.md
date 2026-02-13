@@ -1,13 +1,12 @@
 # Nvidia Toolkit Ansible Project
 
-Complete automation for Nvidia GPU infrastructure setup, supporting CUDA development, machine
-learning training, and local model inference.
+Complete automation for Nvidia GPU infrastructure setup, supporting CUDA development and local
+model inference.
 
 ## Features
 
 - **Nvidia Driver Installation**: Automated driver setup with nouveau conflict resolution
 - **CUDA Toolkit**: Full CUDA development environment with cuDNN and NCCL
-- **ML Frameworks**: PyTorch and TensorFlow with GPU acceleration
 - **Inference Tools**: Ollama, llama.cpp, and optional vLLM for local model inference
 - **Validation**: Automated testing to ensure all components work correctly
 
@@ -43,7 +42,6 @@ Run specific components using tags:
 ```bash
 ansible-playbook playbooks/main.yml --tags driver      # Nvidia driver only
 ansible-playbook playbooks/main.yml --tags cuda        # CUDA toolkit
-ansible-playbook playbooks/main.yml --tags ml          # ML frameworks
 ansible-playbook playbooks/main.yml --tags inference   # Inference tools
 ansible-playbook playbooks/main.yml --tags validation  # Run validation tests
 ```
@@ -77,16 +75,20 @@ nvidia-smi
 # Verify CUDA compiler
 nvcc --version
 
+# Test Ollama (if installed)
+ollama list
+```
+
+### Verifying ML Framework GPU Access
+
+After manually installing PyTorch or TensorFlow:
+
+```bash
 # Test PyTorch GPU access
-conda activate pytorch
 python -c "import torch; print(torch.cuda.is_available())"
 
 # Test TensorFlow GPU access
-conda activate tensorflow
 python -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
-
-# Test Ollama (if installed)
-ollama list
 ```
 
 ## Monitoring GPU Usage

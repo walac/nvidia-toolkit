@@ -1,6 +1,0 @@
----
-- name: Configure ml-frameworks
-  hosts: all
-  become: true
-  roles:
-    - ml-python

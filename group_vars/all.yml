@@ -16,15 +16,6 @@ nvidia_driver_version: "latest" # Recommended stable version, or use "latest"
 cuda_version: "13.1"
 
 # ============================================
-# ML Frameworks Configuration
-# ============================================
-# ML framework installation disabled - user manages Python environments manually
-install_ml: false
-
-# Note: PyTorch, TensorFlow, and other ML frameworks should be installed
-# manually by the user according to their specific requirements
-
-# ============================================
 # Inference Tools Configuration
 # ============================================
 install_inference: true
