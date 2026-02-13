@@ -122,13 +122,10 @@ Edit `group_vars/all.yml` to configure versions and features:
 
 ```yaml
 # Key variables to review:
-nvidia_driver_version: "545"
+nvidia_driver_version: "latest"
 cuda_version: "13.1"
-pytorch_install: true
-tensorflow_install: true
-inference_tools:
-  - ollama
-  - llama-cpp
+install_inference: true
+install_monitoring: true
 ```
 
 ### 4. Run the Playbook
@@ -194,7 +191,6 @@ Edit `group_vars/all.yml`:
 
 ```yaml
 cuda_version: "13.1" # or "11.8", "12.2", etc.
-cudnn_version: "8.9"
 ```
 
 **Note on Fedora Support**: NVIDIA's CUDA repositories often trail the latest Fedora release. This
@@ -203,37 +199,6 @@ repositories (currently Fedora 42), it will automatically use the repository for
 supported version. For example, Fedora 43 systems will use the Fedora 42 CUDA repository. You can
 check/modify the `cuda_fedora_max_version` variable in `roles/cuda/defaults/main.yml` when NVIDIA
 releases updated repositories.
-
-#### 2. ML Framework Selection
-
-```yaml
-pytorch_install: true
-pytorch_version: "2.2.0"
-
-tensorflow_install: true
-tensorflow_version: "2.15.0"
-
-jax_install: false # Optional
-```
-
-#### 3. Inference Tools
-
-```yaml
-inference_tools:
-  - ollama
-  - llama-cpp
-
-ollama_models:
-  - llama2:7b
-  - codellama:7b
-```
-
-#### 4. Model Storage Location
-
-```yaml
-model_cache_dir: "/opt/models"
-huggingface_cache: "/opt/models/huggingface"
-```
 
 ## Post-Installation Validation
 

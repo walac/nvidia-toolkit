@@ -160,8 +160,7 @@
               - "Driver Version: {{ nvidia_driver_version }}"
               - "CUDA Version: {{ cuda_version }}"
               - "ML Frameworks: {{ 'Installed' if install_ml else 'Skipped' }}"
-              - "Inference Tools: {{ inference_tools | join(', ') if install_inference else
-                'Skipped' }}"
+              - "Inference Tools: {{ 'Installed' if install_inference else 'Skipped' }}"
               - ""
               - "Next Steps:"
               - "  1. Verify GPU access: nvidia-smi"
