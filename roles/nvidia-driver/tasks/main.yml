@@ -95,25 +95,11 @@
       "{{ 'WARNING: nouveau driver is currently loaded' if nouveau_loaded.rc == 0 else 'nouveau
       driver is not loaded' }}"
 
-- name: Create nouveau blacklist configuration
-  copy:
-    dest: /etc/modprobe.d/blacklist-nouveau.conf
-    content: |
-      # Blacklist nouveau driver to allow Nvidia proprietary driver
-      blacklist nouveau
-      options nouveau modeset=0
-    owner: root
-    group: root
-    mode: "0644"
-  when: nvidia_force_nouveau_blacklist | default(true)
-  notify: "driver configuration changed"
-
 - name: Install Nvidia driver packages from RPM Fusion
   dnf:
     name: "{{ nvidia_driver_packages }}"
     state: present
     enablerepo: rpmfusion-nonfree
-  notify: "driver configuration changed"
   register: nvidia_install
 
 - name: Wait for akmods to build kernel modules
@@ -148,14 +134,13 @@
   failed_when: false
   when: nvidia_module.stat.exists
 
-- name: Create modprobe nvidia configuration
-  copy:
-    dest: /etc/modprobe.d/nvidia.conf
-    content: |
-      # Nvidia driver options
-      options nvidia NVreg_PreserveVideoMemoryAllocations=1
-      options nvidia-drm modeset=1
-    owner: root
-    group: root
-    mode: "0644"
-  notify: "driver configuration changed"
+- name: Display reboot instruction
+  debug:
+    msg:
+      - "################################################################"
+      - "# REBOOT REQUIRED                                              #"
+      - "#                                                              #"
+      - "# Nvidia drivers were installed or updated.                    #"
+      - "# Please reboot the system to load the new kernel modules.     #"
+      - "################################################################"
+  when: nvidia_install.changed

@@ -10,8 +10,3 @@ nvidia_driver_packages:
   - nvidia-settings # GUI configuration tool
   - libvdpau # Video acceleration library
 
-# Skip reboot after installation (useful for testing)
-nvidia_driver_skip_reboot: false
-
-# Force nouveau blacklist (RPM Fusion usually handles this)
-nvidia_force_nouveau_blacklist: true
