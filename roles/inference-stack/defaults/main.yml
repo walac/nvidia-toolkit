@@ -3,11 +3,13 @@
 # defaults file for inference-stack
 
 # Ollama version (check https://github.com/ollama/ollama/releases)
-ollama_version: "0.15.6"
+ollama_version: "0.16.1"
 
-# Ollama binary download URL
-ollama_binary_url:
-  "https://github.com/ollama/ollama/releases/download/v{{ ollama_version }}/ollama-linux-amd64"
+# Ollama tarball download URL (releases are .tar.zst compressed)
+ollama_tarball_url: "https://github.com/ollama/ollama/releases/download/v{{ ollama_version }}/ollama-linux-amd64.tar.zst"
+
+# Ollama installation directory (extracted tarball contents)
+ollama_install_dir: "/opt/ollama"
 
 # Ollama system user and group
 ollama_user: "ollama"

@@ -10,6 +10,11 @@
       - "Models directory: {{ ollama_models_dir }}"
       - "Service will listen on {{ ollama_host }}:{{ ollama_port }}"
 
+- name: Install zstd for tarball extraction
+  package:
+    name: zstd
+    state: present
+
 - name: Create ollama system group
   group:
     name: "{{ ollama_group }}"
@@ -37,26 +42,54 @@
     - "{{ ollama_data_dir }}"
     - "{{ ollama_models_dir }}"
 
-- name: Download Ollama binary
-  get_url:
-    url: "{{ ollama_binary_url }}"
-    dest: /usr/local/bin/ollama
+- name: Create Ollama installation directory
+  file:
+    path: "{{ ollama_install_dir }}"
+    state: directory
     owner: root
     group: root
     mode: "0755"
+
+- name: Check if Ollama binary exists
+  stat:
+    path: "{{ ollama_install_dir }}/bin/ollama"
+  register: ollama_binary_stat
+
+- name: Download Ollama tarball
+  get_url:
+    url: "{{ ollama_tarball_url }}"
+    dest: "/tmp/ollama-{{ ollama_version }}.tar.zst"
+    mode: "0644"
+  when: not ollama_binary_stat.stat.exists
+
+- name: Extract Ollama tarball
+  shell: zstd -d -c "/tmp/ollama-{{ ollama_version }}.tar.zst" | tar -xf - -C "{{ ollama_install_dir }}"
+  args:
+    creates: "{{ ollama_install_dir }}/bin/ollama"
   notify: Restart ollama
-  register: ollama_binary
+
+- name: Create symlink to ollama binary
+  file:
+    src: "{{ ollama_install_dir }}/bin/ollama"
+    dest: /usr/local/bin/ollama
+    state: link
+    force: true
 
 - name: Verify Ollama binary
   command: /usr/local/bin/ollama --version
   register: ollama_version_check
   changed_when: false
-  when: ollama_binary.changed
 
 - name: Display Ollama version
   debug:
     msg: "{{ ollama_version_check.stdout }}"
-  when: ollama_version_check is defined and ollama_version_check.stdout is defined
+  when: ollama_version_check.stdout is defined
+
+- name: Clean up downloaded tarball
+  file:
+    path: "/tmp/ollama-{{ ollama_version }}.tar.zst"
+    state: absent
+  when: not ollama_binary_stat.stat.exists
 
 - name: Configure Ollama systemd service
   template:

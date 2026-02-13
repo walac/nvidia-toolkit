@@ -20,7 +20,8 @@ Installs Ollama for local LLM inference with GPU acceleration.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ollama_version` | `0.15.6` | Ollama version to install |
+| `ollama_version` | `0.16.1` | Ollama version to install |
+| `ollama_install_dir` | `/opt/ollama` | Installation directory for extracted files |
 | `ollama_user` | `ollama` | System user for the service |
 | `ollama_group` | `ollama` | System group for the service |
 | `ollama_data_dir` | `/var/lib/ollama` | Data storage directory |
