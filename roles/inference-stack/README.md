@@ -26,9 +26,8 @@ Installs Ollama for local LLM inference with GPU acceleration.
 | `ollama_group` | `ollama` | System group for the service |
 | `ollama_data_dir` | `/var/lib/ollama` | Data storage directory |
 | `ollama_models_dir` | `/var/lib/ollama/models` | Model storage directory |
-| `ollama_host` | `0.0.0.0` | Listen address |
+| `ollama_host` | `127.0.0.1` | Listen address |
 | `ollama_port` | `11434` | Listen port |
-| `ollama_validate_install` | `true` | Check service health after install |
 | `ollama_prepull_models` | `[]` | Models to download during install |
 
 ### Pre-pulling Models
@@ -76,6 +75,16 @@ ollama run llama2:7b "Hello, world!"
 
 # API endpoint
 curl http://localhost:11434
+```
+
+## Troubleshooting
+
+```bash
+# View service logs
+journalctl -u ollama -f
+
+# Check GPU detection
+ollama run llama2:7b --verbose 2>&1 | grep -i gpu
 ```
 
 ## License

@@ -20,11 +20,8 @@ ollama_data_dir: "/var/lib/ollama"
 ollama_models_dir: "{{ ollama_data_dir }}/models"
 
 # Service configuration
-ollama_host: "0.0.0.0" # Listen on all interfaces (use 127.0.0.1 for local only)
+ollama_host: "127.0.0.1" # Listen on localhost only (use 0.0.0.0 for all interfaces)
 ollama_port: "11434"
-
-# Validation
-ollama_validate_install: true # Check if service is healthy after installation
 
 # Optional: Pre-pull models during installation
 # Set to empty list to skip model pulling
