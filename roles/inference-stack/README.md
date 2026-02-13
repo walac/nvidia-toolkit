@@ -26,8 +26,6 @@ Installs Ollama for local LLM inference with GPU acceleration.
 | `ollama_group` | `ollama` | System group for the service |
 | `ollama_data_dir` | `/var/lib/ollama` | Data storage directory |
 | `ollama_models_dir` | `/var/lib/ollama/models` | Model storage directory |
-| `ollama_host` | `127.0.0.1` | Listen address |
-| `ollama_port` | `11434` | Listen port |
 | `ollama_prepull_models` | `[]` | Models to download during install |
 
 ### Pre-pulling Models

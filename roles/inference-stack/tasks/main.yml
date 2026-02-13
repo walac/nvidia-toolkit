@@ -95,5 +95,3 @@
   when: ollama_prepull_models is defined and ollama_prepull_models | length > 0
   become: true
   become_user: "{{ ollama_user }}"
-  environment:
-    OLLAMA_HOST: "{{ ollama_host }}:{{ ollama_port }}"
