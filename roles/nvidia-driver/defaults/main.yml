@@ -8,7 +8,7 @@ nvidia_driver_packages:
   - xorg-x11-drv-nvidia-cuda # CUDA support (essential for ML/AI)
   - xorg-x11-drv-nvidia-power # Power management for Nvidia GPUs
   - nvidia-settings # GUI configuration tool
-  - vdpau-driver-all # Video acceleration
+  - libvdpau # Video acceleration library
 
 # Skip reboot after installation (useful for testing)
 nvidia_driver_skip_reboot: false

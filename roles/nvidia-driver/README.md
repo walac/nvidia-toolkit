@@ -32,7 +32,7 @@ nvidia_driver_packages:
   - xorg-x11-drv-nvidia-cuda
   - xorg-x11-drv-nvidia-power
   - nvidia-settings
-  - vdpau-driver-all
+  - libvdpau
 ```
 
 ## Dependencies
