@@ -2,13 +2,6 @@
 ---
 # tasks file for cuda
 
-- name: Verify this is a RedHat-based system
-  fail:
-    msg:
-      "This role currently only supports RedHat/Fedora/Rocky systems. Detected: {{ ansible_os_family
-      }}"
-  when: ansible_os_family != 'RedHat'
-
 - name: Display CUDA installation information
   debug:
     msg:
@@ -43,7 +36,7 @@
   dnf:
     update_cache: true
 
-- name: Install CUDA Toolkit and Deep Learning Libraries
+- name: Install CUDA Toolkit
   package:
     name: "{{ cuda_packages }}"
     state: present
@@ -55,7 +48,6 @@
     dest: "{{ cuda_symlink }}"
     state: link
     force: true
-  when: cuda_create_symlink | default(true)
 
 - name: Setup CUDA environment variables
   template:
@@ -64,37 +56,3 @@
     owner: root
     group: root
     mode: "0644"
-
-- name: Source environment to make CUDA available
-  shell: source /etc/profile.d/cuda.sh
-  args:
-    executable: /bin/bash
-  changed_when: false
-
-- name: Check if nvcc exists
-  stat:
-    path: "{{ cuda_home }}/bin/nvcc"
-  register: nvcc_binary
-
-- name: Verify CUDA compiler (nvcc)
-  command: "{{ cuda_home }}/bin/nvcc --version"
-  register: nvcc_check
-  changed_when: false
-  when: nvcc_binary.stat.exists
-
-- name: Display CUDA version
-  debug:
-    msg: "{{ nvcc_check.stdout_lines }}"
-  when: nvcc_check is defined and nvcc_check.stdout_lines is defined
-
-- name: Check for CUDA libraries
-  stat:
-    path: "{{ cuda_home }}/lib64/libcudart.so"
-  register: cuda_lib
-
-- name: Display CUDA installation status
-  debug:
-    msg:
-      "{{ 'CUDA installation successful' if cuda_lib.stat.exists else 'WARNING: CUDA libraries not
-      found' }}"
-

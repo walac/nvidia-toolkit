@@ -4,7 +4,7 @@
 
 # CUDA version from group_vars (e.g., "12.3")
 # This gets overridden by group_vars/all.yml
-cuda_version: "{{ cuda_version | default('12.3') }}"
+cuda_version: "{{ cuda_version | default('13.1') }}"
 
 # Convert version "12.3" to "12-3" for package names
 cuda_package_version: "{{ cuda_version | replace('.', '-') }}"
@@ -24,11 +24,5 @@ cuda_packages:
   - "cuda-toolkit-{{ cuda_package_version }}"
 
 # CUDA installation path
-cuda_home: "/usr/local/cuda-{{ cuda_version }}"
-cuda_symlink: "/usr/local/cuda"
-
-# Whether to create /usr/local/cuda symlink
-cuda_create_symlink: true
-
-# Install CUDA samples for testing
-cuda_install_samples: true
+cuda_home: "/opt/cuda-{{ cuda_version }}"
+cuda_symlink: "/opt/cuda"
