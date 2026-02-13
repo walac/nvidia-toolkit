@@ -17,13 +17,11 @@ cuda_package_version: "{{ cuda_version | replace('.', '-') }}"
 # using this version's repository to ensure compatibility.
 cuda_fedora_max_version: "42"
 
-# CUDA toolkit and deep learning packages
+# CUDA toolkit packages
+# Note: cuDNN and NCCL are not in NVIDIA's CUDA repo for Fedora.
+# Install them separately via NVIDIA's cuDNN/NCCL downloads if needed.
 cuda_packages:
   - "cuda-toolkit-{{ cuda_package_version }}"
-  - libcudnn8
-  - libcudnn8-devel
-  - libnccl
-  - libnccl-devel
 
 # CUDA installation path
 cuda_home: "/usr/local/cuda-{{ cuda_version }}"

@@ -19,20 +19,8 @@
 - name: Set distribution-specific CUDA repository paths
   set_fact:
     cuda_dist_id: "{{ 'fedora' if ansible_distribution == 'Fedora' else 'rhel' }}"
-    # Logic:
-    # 1. If Fedora AND version <= max_supported -> Use system version
-    # 2. If NOT Fedora (RHEL/Rocky/AlmaLinux) -> Use system version
-    # 3. If Fedora AND version > max_supported -> Fallback to max_supported
-    cuda_dist_version: >-
-      {{
-        ansible_distribution_major_version
-        if (
-          (ansible_distribution == 'Fedora' and (ansible_distribution_major_version | int) <=
-      (cuda_fedora_max_version | int))
-          or ansible_distribution != 'Fedora'
-        )
-        else cuda_fedora_max_version
-      }}
+    # Fedora version fallback: use max supported version if current is newer
+    cuda_dist_version: "{{ cuda_fedora_max_version if (ansible_distribution == 'Fedora' and (ansible_distribution_major_version | int) > (cuda_fedora_max_version | int)) else ansible_distribution_major_version }}"
 
 - name: Display repository information
   debug:
@@ -44,19 +32,12 @@
   yum_repository:
     name: cuda
     description: Nvidia CUDA Repository
-    baseurl:
-      "https://developer.download.nvidia.com/compute/cuda/repos/{{ cuda_dist_id }}{{
-      cuda_dist_version }}/x86_64/"
-    gpgkey:
-      "https://developer.download.nvidia.com/compute/cuda/repos/{{ cuda_dist_id }}{{
-      cuda_dist_version }}/x86_64/D42D0685.pub"
+    baseurl: "https://developer.download.nvidia.com/compute/cuda/repos/{{ cuda_dist_id }}{{ cuda_dist_version }}/x86_64/"
+    gpgkey: "https://developer.download.nvidia.com/compute/cuda/repos/{{ cuda_dist_id }}{{ cuda_dist_version }}/x86_64/D42D0685.pub"
     gpgcheck: true
     enabled: true
-    # CRITICAL: Exclude driver packages to prevent conflict with RPM Fusion akmods
-    # This forces CUDA to use the already-installed RPM Fusion drivers
-    exclude:
-      "xorg-x11-drv-nvidia* kmod-nvidia* akmod-nvidia* nvidia-driver* nvidia-settings*
-      *cuda-drivers* nvidia-kmod-common*"
+    # Exclude driver packages to prevent conflict with RPM Fusion akmods
+    exclude: "xorg-x11-drv-nvidia* kmod-nvidia* akmod-nvidia* nvidia-driver* nvidia-settings* *cuda-drivers* nvidia-kmod-common*"
 
 - name: Update DNF cache for CUDA repository
   dnf:
@@ -117,20 +98,3 @@
       "{{ 'CUDA installation successful' if cuda_lib.stat.exists else 'WARNING: CUDA libraries not
       found' }}"
 
-- name: Check for cuDNN library
-  stat:
-    path: "/usr/lib64/libcudnn.so"
-  register: cudnn_lib
-
-- name: Display cuDNN status
-  debug:
-    msg: "{{ 'cuDNN installed' if cudnn_lib.stat.exists else 'cuDNN not found' }}"
-
-- name: Check for NCCL library
-  stat:
-    path: "/usr/lib64/libnccl.so"
-  register: nccl_lib
-
-- name: Display NCCL status
-  debug:
-    msg: "{{ 'NCCL installed' if nccl_lib.stat.exists else 'NCCL not found' }}"

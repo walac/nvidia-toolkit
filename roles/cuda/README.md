@@ -5,7 +5,7 @@ Installs NVIDIA CUDA Toolkit and deep learning libraries from NVIDIA's official 
 ## What It Does
 
 - Adds NVIDIA CUDA repository with driver packages excluded (uses RPM Fusion drivers)
-- Installs CUDA toolkit, cuDNN, and NCCL libraries
+- Installs CUDA toolkit
 - Creates `/usr/local/cuda` symlink
 - Sets up environment variables in `/etc/profile.d/cuda.sh`
 - Handles Fedora version fallback when NVIDIA repos lag behind
@@ -32,10 +32,32 @@ Installs NVIDIA CUDA Toolkit and deep learning libraries from NVIDIA's official 
 ```yaml
 cuda_packages:
   - cuda-toolkit-{version}
-  - libcudnn8
-  - libcudnn8-devel
-  - libnccl
-  - libnccl-devel
+```
+
+Note: cuDNN and NCCL are not available in NVIDIA's CUDA repository for Fedora.
+See the section below for installation instructions.
+
+## Installing cuDNN
+
+cuDNN (CUDA Deep Neural Network library) provides GPU-accelerated primitives for
+deep learning frameworks like PyTorch and TensorFlow. Install it via conda:
+
+```bash
+# Create a conda environment with cuDNN
+conda create -n ml python=3.11
+conda activate ml
+
+# Install cuDNN from NVIDIA channel
+conda install -c nvidia cudnn
+
+# Or install with PyTorch (includes cuDNN automatically)
+conda install pytorch torchvision torchaudio pytorch-cuda=13.1 -c pytorch -c nvidia
+```
+
+Verify installation:
+
+```bash
+python -c "import torch; print(f'cuDNN version: {torch.backends.cudnn.version()}')"
 ```
 
 ## Fedora Version Fallback
