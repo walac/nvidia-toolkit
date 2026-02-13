@@ -18,7 +18,7 @@ Currently supported:
 ## Quick Start
 
 ```bash
-ansible-playbook -K -i inventory/hosts.yml playbooks/main.yml
+ansible-playbook -K playbooks/main.yml
 ```
 
 ## Available Tags
