@@ -49,7 +49,7 @@
           assert:
             that: gpu_check.rc == 0
             fail_msg: "No Nvidia GPU detected on this system"
-            success_msg: "Nvidia GPU detected: {{ gpu_check.stdout_lines[0] }}"
+            success_msg: "Nvidia GPU detected: {{ gpu_check.stdout_lines | first | default('unknown') }}"
 
         - name: Check kernel headers are available
           package:
