@@ -8,7 +8,6 @@ model inference.
 - **Nvidia Driver Installation**: Automated driver setup with nouveau conflict resolution
 - **CUDA Toolkit**: Full CUDA development environment with cuDNN and NCCL
 - **Inference Tools**: Ollama, llama.cpp, and optional vLLM for local model inference
-- **Validation**: Automated testing to ensure all components work correctly
 
 ## Supported Systems
 
@@ -43,7 +42,6 @@ Run specific components using tags:
 ansible-playbook playbooks/main.yml --tags driver      # Nvidia driver only
 ansible-playbook playbooks/main.yml --tags cuda        # CUDA toolkit
 ansible-playbook playbooks/main.yml --tags inference   # Inference tools
-ansible-playbook playbooks/main.yml --tags validation  # Run validation tests
 ```
 
 ## Configuration
@@ -68,13 +66,39 @@ when NVIDIA releases updated repositories.
 
 ## Post-Installation Validation
 
+### Nvidia Driver
+
+Verify the driver is loaded and the GPU is detected:
+
 ```bash
-# Check GPU detection
 nvidia-smi
+```
 
-# Verify CUDA compiler
+Expected output shows GPU name, driver version, and memory usage. If this fails, check that
+nouveau is blacklisted and reboot the system.
+
+### CUDA Toolkit
+
+Verify the CUDA compiler is available:
+
+```bash
 nvcc --version
+```
 
+Test CUDA functionality by compiling and running a sample program:
+
+```bash
+cat > /tmp/cuda_test.cu << 'EOF'
+#include <stdio.h>
+__global__ void hello() { printf("Hello from GPU!\n"); }
+int main() { hello<<<1,1>>>(); cudaDeviceSynchronize(); return 0; }
+EOF
+nvcc /tmp/cuda_test.cu -o /tmp/cuda_test && /tmp/cuda_test
+```
+
+### Inference Tools
+
+```bash
 # Test Ollama (if installed)
 ollama list
 ```

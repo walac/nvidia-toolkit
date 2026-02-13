@@ -35,11 +35,8 @@ build_packages:
   - curl
 
 # ============================================
-# Monitoring and Validation
+# Monitoring
 # ============================================
-enable_validation: true
-
-# GPU Monitoring
 install_monitoring: true # Lightweight CLI tools (nvtop, btop)
 install_monitoring_stack: false # Full Prometheus/Grafana stack (optional)
 

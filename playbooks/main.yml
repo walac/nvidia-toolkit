@@ -14,7 +14,6 @@
 #   - cuda: CUDA toolkit installation
 #   - containers: Container runtime setup
 #   - inference: Inference tools
-#   - validation: Post-installation tests
 # ============================================
 
 - name: Nvidia GPU Toolkit Complete Setup
@@ -117,32 +116,6 @@
       tags: ["monitoring", "observability"]
 
   post_tasks:
-    - name: Run validation tests
-      block:
-        - name: Test nvidia-smi
-          command: nvidia-smi
-          register: nvidia_smi_output
-          changed_when: false
-          failed_when: nvidia_smi_output.rc != 0
-
-        - name: Display GPU information
-          debug:
-            msg: "{{ nvidia_smi_output.stdout_lines }}"
-
-        - name: Test CUDA compiler
-          command: nvcc --version
-          register: nvcc_output
-          changed_when: false
-          failed_when: nvcc_output.rc != 0
-          when: "'cuda' in ansible_run_tags or 'all' in ansible_run_tags"
-
-        - name: Display CUDA version
-          debug:
-            msg: "{{ nvcc_output.stdout_lines }}"
-          when: nvcc_output is defined and nvcc_output.rc == 0
-      tags: ["validation", "test"]
-      when: enable_validation | default(true)
-
     - name: Generate setup summary
       block:
         - name: Create summary
