@@ -1,39 +1,59 @@
-# Role Name
+# nvidia-driver
 
-A brief description of the role goes here.
+Installs Nvidia proprietary drivers from RPM Fusion on Fedora systems.
+
+## What It Does
+
+- Enables RPM Fusion Free and Non-Free repositories
+- Blacklists the nouveau open-source driver
+- Installs akmod-nvidia for automatic kernel module building
+- Configures nvidia-persistenced service
+- Sets up driver options for video memory preservation and DRM modeset
 
 ## Requirements
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here.
-For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that
-the boto package is required.
+- Fedora 40+ (RedHat family systems)
+- Nvidia GPU detected by the system
+- Internet access to download packages
 
 ## Role Variables
 
-A description of the settable variables for this role should go here, including any variables that
-are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to
-the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group
-vars, etc.) should be mentioned here as well.
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `nvidia_driver_packages` | See defaults | List of packages to install |
+| `nvidia_driver_skip_reboot` | `false` | Skip reboot notification after install |
+| `nvidia_force_nouveau_blacklist` | `true` | Create nouveau blacklist config |
+
+### Default Packages
+
+```yaml
+nvidia_driver_packages:
+  - akmod-nvidia
+  - xorg-x11-drv-nvidia-cuda
+  - xorg-x11-drv-nvidia-power
+  - nvidia-settings
+  - vdpau-driver-all
+```
 
 ## Dependencies
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters
-that may need to be set for other roles, or variables that are used from other roles.
+None.
 
 ## Example Playbook
 
-Including an example of how to use your role (for instance, with variables passed in as parameters)
-is always nice for users too:
+```yaml
+- hosts: gpu_servers
+  become: true
+  roles:
+    - nvidia-driver
+```
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+## Notes
+
+- A reboot is typically required after driver installation
+- The role uses akmods which automatically rebuilds kernel modules on kernel updates
+- Secure Boot users must enroll the MOK key for signed modules
 
 ## License
 
-BSD
-
-## Author Information
-
-An optional section for the role authors to include contact information, or a website (HTML is not
-allowed).
+MIT

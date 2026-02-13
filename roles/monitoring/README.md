@@ -1,39 +1,83 @@
-# Role Name
+# monitoring
 
-A brief description of the role goes here.
+Installs GPU monitoring tools for observing GPU utilization and performance.
+
+## What It Does
+
+- Installs nvtop (interactive GPU monitor, like htop for GPUs)
+- Installs btop (modern system monitor with GPU support)
+- Optionally deploys a full Prometheus/Grafana monitoring stack
 
 ## Requirements
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here.
-For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that
-the boto package is required.
+- Fedora 40+ (RedHat family systems)
+- nvidia-driver role should be applied first
 
 ## Role Variables
 
-A description of the settable variables for this role should go here, including any variables that
-are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to
-the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group
-vars, etc.) should be mentioned here as well.
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `monitoring_cli_tools` | `[nvtop, btop]` | CLI tools to install |
+| `install_monitoring_stack` | `false` | Deploy Prometheus/Grafana stack |
+| `prometheus_port` | `9090` | Prometheus listen port |
+| `grafana_port` | `3000` | Grafana listen port |
 
 ## Dependencies
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters
-that may need to be set for other roles, or variables that are used from other roles.
+- nvidia-driver (recommended)
 
 ## Example Playbook
 
-Including an example of how to use your role (for instance, with variables passed in as parameters)
-is always nice for users too:
+```yaml
+- hosts: gpu_servers
+  become: true
+  roles:
+    - nvidia-driver
+    - monitoring
+```
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+## Usage
+
+After installation:
+
+```bash
+# Interactive GPU monitoring (like htop for GPUs)
+nvtop
+
+# Modern system monitor with GPU support
+btop
+
+# Nvidia's built-in monitoring
+nvidia-smi
+
+# Continuous monitoring (1 second interval)
+nvidia-smi -l 1
+```
+
+## Optional Monitoring Stack
+
+Enable full monitoring with Prometheus and Grafana:
+
+```yaml
+install_monitoring_stack: true
+```
+
+This deploys to `~/gpu-monitoring/` with:
+- DCGM Exporter (Nvidia GPU metrics)
+- Prometheus (metrics collection)
+- Grafana (visualization)
+
+Start the stack:
+
+```bash
+cd ~/gpu-monitoring
+podman-compose up -d
+```
+
+Access:
+- Grafana: http://localhost:3000 (admin/admin)
+- Prometheus: http://localhost:9090
 
 ## License
 
-BSD
-
-## Author Information
-
-An optional section for the role authors to include contact information, or a website (HTML is not
-allowed).
+MIT

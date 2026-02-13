@@ -1,39 +1,82 @@
-# Role Name
+# inference-stack
 
-A brief description of the role goes here.
+Installs Ollama for local LLM inference with GPU acceleration.
+
+## What It Does
+
+- Downloads and installs Ollama binary
+- Creates dedicated ollama system user and group
+- Sets up data and model directories
+- Configures systemd service for automatic startup
+- Optionally pre-pulls specified models
 
 ## Requirements
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here.
-For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that
-the boto package is required.
+- Fedora 40+ (RedHat family systems)
+- nvidia-driver and cuda roles should be applied first for GPU support
+- Internet access to download Ollama and models
 
 ## Role Variables
 
-A description of the settable variables for this role should go here, including any variables that
-are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to
-the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group
-vars, etc.) should be mentioned here as well.
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ollama_version` | `0.15.6` | Ollama version to install |
+| `ollama_user` | `ollama` | System user for the service |
+| `ollama_group` | `ollama` | System group for the service |
+| `ollama_data_dir` | `/var/lib/ollama` | Data storage directory |
+| `ollama_models_dir` | `/var/lib/ollama/models` | Model storage directory |
+| `ollama_host` | `0.0.0.0` | Listen address |
+| `ollama_port` | `11434` | Listen port |
+| `ollama_validate_install` | `true` | Check service health after install |
+| `ollama_prepull_models` | `[]` | Models to download during install |
+
+### Pre-pulling Models
+
+To automatically download models during installation:
+
+```yaml
+ollama_prepull_models:
+  - llama2:7b
+  - codellama:7b
+```
 
 ## Dependencies
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters
-that may need to be set for other roles, or variables that are used from other roles.
+- nvidia-driver (recommended)
+- cuda (recommended)
 
 ## Example Playbook
 
-Including an example of how to use your role (for instance, with variables passed in as parameters)
-is always nice for users too:
+```yaml
+- hosts: gpu_servers
+  become: true
+  roles:
+    - nvidia-driver
+    - cuda
+    - inference-stack
+```
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+## Usage
+
+After installation:
+
+```bash
+# Check service status
+systemctl status ollama
+
+# List models
+ollama list
+
+# Pull a model
+ollama pull llama2:7b
+
+# Run inference
+ollama run llama2:7b "Hello, world!"
+
+# API endpoint
+curl http://localhost:11434
+```
 
 ## License
 
-BSD
-
-## Author Information
-
-An optional section for the role authors to include contact information, or a website (HTML is not
-allowed).
+MIT
