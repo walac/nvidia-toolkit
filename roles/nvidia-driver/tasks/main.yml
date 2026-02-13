@@ -24,7 +24,7 @@
   tags: [system_update]
 
 - name: Install kernel development packages
-  dnf:
+  package:
     name:
       - kernel-devel
       - kernel-headers

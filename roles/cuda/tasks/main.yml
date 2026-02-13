@@ -44,7 +44,7 @@
     update_cache: true
 
 - name: Install CUDA Toolkit and Deep Learning Libraries
-  dnf:
+  package:
     name: "{{ cuda_packages }}"
     state: present
   register: cuda_install

@@ -9,7 +9,7 @@
       - "CLI tools: {{ monitoring_cli_tools | join(', ') }}"
 
 - name: Install lightweight CLI monitoring tools
-  dnf:
+  package:
     name: "{{ monitoring_cli_tools }}"
     state: present
 

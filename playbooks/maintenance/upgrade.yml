@@ -74,7 +74,7 @@
       register: cuda_upgrade
 
     - name: Upgrade nvidia-container-toolkit
-      dnf:
+      package:
         name: nvidia-container-toolkit
         state: latest
       register: toolkit_upgrade
