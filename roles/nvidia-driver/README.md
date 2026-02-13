@@ -5,10 +5,8 @@ Installs Nvidia proprietary drivers from RPM Fusion on Fedora systems.
 ## What It Does
 
 - Enables RPM Fusion Free and Non-Free repositories
-- Blacklists the nouveau open-source driver
 - Installs akmod-nvidia for automatic kernel module building
 - Configures nvidia-persistenced service
-- Sets up driver options for video memory preservation and DRM modeset
 
 ## Requirements
 
@@ -21,8 +19,6 @@ Installs Nvidia proprietary drivers from RPM Fusion on Fedora systems.
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `nvidia_driver_packages` | See defaults | List of packages to install |
-| `nvidia_driver_skip_reboot` | `false` | Skip reboot notification after install |
-| `nvidia_force_nouveau_blacklist` | `true` | Create nouveau blacklist config |
 
 ### Default Packages
 

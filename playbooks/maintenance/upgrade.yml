@@ -8,7 +8,7 @@
 # Usage:
 #   ansible-playbook playbooks/maintenance/upgrade.yml
 #
-# WARNING: This will reboot the system if driver
+# NOTE: A manual reboot may be required if driver
 # updates are installed
 # ============================================
 
@@ -16,39 +16,6 @@
   hosts: all
   become: true
   gather_facts: true
-
-  pre_tasks:
-    - name: Display upgrade information
-      debug:
-        msg:
-          - "Starting Nvidia GPU stack upgrade"
-          - "Target: {{ ansible_distribution }} {{ ansible_distribution_version }}"
-          - "This may include driver and CUDA updates"
-          - "System will reboot if kernel modules are updated"
-
-    - name: Check current driver version
-      command: nvidia-smi --query-gpu=driver_version --format=csv,noheader
-      register: current_driver
-      changed_when: false
-      failed_when: false
-
-    - name: Display current driver version
-      debug:
-        msg:
-          "Current Nvidia driver: {{ current_driver.stdout if current_driver.rc == 0 else 'Not
-          installed' }}"
-
-    - name: Check current CUDA version
-      command: nvcc --version
-      register: current_cuda
-      changed_when: false
-      failed_when: false
-
-    - name: Display current CUDA version
-      debug:
-        msg:
-          "Current CUDA: {{ current_cuda.stdout_lines[-1] if current_cuda.rc == 0 else 'Not
-          installed' }}"
 
   tasks:
     - name: Update DNF cache
@@ -68,8 +35,6 @@
       dnf:
         name:
           - "cuda-toolkit-*"
-          - "libcudnn*"
-          - "libnccl*"
         state: latest
       register: cuda_upgrade
 
@@ -114,31 +79,6 @@
           - "################################################################"
       when: reboot_required
 
-    - name: Verify currently loaded driver
-      command: nvidia-smi --query-gpu=driver_version --format=csv,noheader
-      register: upgraded_driver
-      changed_when: false
-      ignore_errors: true
-      when: driver_upgrade.changed
-
-    - name: Display driver status
-      debug:
-        msg:
-          - "Current loaded driver: {{ upgraded_driver.stdout | default('Unavailable') }}"
-          - "NOTE: The updated driver version will not be active until after you reboot."
-      when: upgraded_driver is defined
-
-    - name: Verify CUDA after upgrade
-      command: nvcc --version
-      register: upgraded_cuda
-      changed_when: false
-      when: cuda_upgrade.changed
-
-    - name: Display upgraded CUDA version
-      debug:
-        msg: "{{ upgraded_cuda.stdout_lines }}"
-      when: upgraded_cuda is defined
-
     - name: Display upgrade summary
       debug:
         msg:
@@ -149,7 +89,7 @@
           - "CUDA upgraded: {{ 'Yes' if cuda_upgrade.changed else 'No (already latest)' }}"
           - "Container toolkit upgraded: {{ 'Yes' if toolkit_upgrade.changed else 'No (already
             latest)' }}"
-          - "System rebooted: {{ 'Yes' if reboot_required else 'No' }}"
+          - "Reboot required: {{ 'Yes' if reboot_required else 'No' }}"
           - ""
           - "Verify installation:"
           - "  nvidia-smi"

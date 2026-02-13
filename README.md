@@ -5,8 +5,8 @@ model inference.
 
 ## Features
 
-- **Nvidia Driver Installation**: Automated driver setup with nouveau conflict resolution
-- **CUDA Toolkit**: Full CUDA development environment with cuDNN and NCCL
+- **Nvidia Driver Installation**: Automated driver setup via RPM Fusion
+- **CUDA Toolkit**: Full CUDA development environment
 - **Inference Tools**: Ollama, llama.cpp, and optional vLLM for local model inference
 
 ## Supported Systems
@@ -108,16 +108,8 @@ nvidia-smi -i 0
 
 ### Nouveau Driver Conflict
 
-The playbook automatically blacklists nouveau. If issues persist after installation:
-
-```bash
-# Verify nouveau is blacklisted
-cat /etc/modprobe.d/blacklist-nouveau.conf
-
-# Rebuild initramfs and reboot
-sudo dracut --force
-sudo reboot
-```
+RPM Fusion packages automatically handle nouveau blacklisting via dracut. If nouveau
+is still loaded after driver installation, reboot the system.
 
 ### Secure Boot
 
