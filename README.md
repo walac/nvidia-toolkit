@@ -11,27 +11,14 @@ model inference.
 
 ## Supported Systems
 
-Currently supported (RedHat family):
-- Fedora 38 / 39 / 40+
-- RHEL 8 / 9
-- Rocky Linux 8 / 9
-- AlmaLinux 8 / 9
+Currently supported:
 
-> **Roadmap**: Support for Debian-based distributions (Ubuntu 20.04/22.04/24.04 LTS, Debian
-> 11/12) is planned for a future release.
+- Fedora 40+
 
 ## Quick Start
 
 ```bash
-# Clone the repository
-git clone <your-repo-url>
-cd nvidia-toolkit
-
-# Configure your target hosts in inventory/hosts.yml
-# Adjust variables in group_vars/all.yml
-
-# Run the full installation
-ansible-playbook playbooks/main.yml
+ansible-playbook -K -i inventory/hosts.yml playbooks/main.yml
 ```
 
 ## Available Tags
@@ -42,17 +29,6 @@ Run specific components using tags:
 ansible-playbook playbooks/main.yml --tags driver      # Nvidia driver only
 ansible-playbook playbooks/main.yml --tags cuda        # CUDA toolkit
 ansible-playbook playbooks/main.yml --tags inference   # Inference tools
-```
-
-## Configuration
-
-Key variables in `group_vars/all.yml`:
-
-```yaml
-nvidia_driver_version: "latest"
-cuda_version: "13.1"
-install_inference: true
-install_monitoring: true
 ```
 
 ### Fedora CUDA Repository Fallback
@@ -147,15 +123,6 @@ sudo reboot
 
 If the Nvidia driver fails to load, either disable Secure Boot in BIOS/UEFI or sign the Nvidia
 kernel modules with your MOK key.
-
-### Kernel Update Breaks Driver
-
-After a kernel update, rebuild the driver modules:
-
-```bash
-dkms status
-sudo dkms autoinstall
-```
 
 ## License
 
