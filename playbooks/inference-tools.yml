@@ -1,6 +1,0 @@
----
-- name: Configure inference-tools
-  hosts: all
-  become: true
-  roles:
-    - inference-stack

@@ -1,6 +1,0 @@
----
-- name: Configure cuda-toolkit
-  hosts: all
-  become: true
-  roles:
-    - cuda

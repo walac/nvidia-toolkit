@@ -1,6 +1,0 @@
----
-- name: Configure drivers
-  hosts: all
-  become: true
-  roles:
-    - nvidia-driver

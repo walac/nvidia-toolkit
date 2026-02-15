@@ -67,42 +67,13 @@
               installation' }}"
       tags: ["preflight", "always"]
 
-    - name: System preparation
-      block:
-        - name: Update package cache (Debian/Ubuntu)
-          apt:
-            update_cache: true
-            cache_valid_time: 3600
-          when: ansible_os_family == 'Debian'
-
-        - name: Update package cache (RedHat/Fedora)
-          dnf:
-            update_cache: true
-          when: ansible_os_family == 'RedHat'
-
-        - name: Install kernel headers
-          package:
-            name:
-              "{{ 'linux-headers-' + ansible_kernel if ansible_os_family == 'Debian' else
-              'kernel-devel' }}"
-            state: present
-
-        - name: Install build essentials
-          package:
-            name: "{{ build_packages }}"
-            state: present
-          when: install_build_tools | default(true)
-      tags: ["system-prep"]
-
   roles:
     # Phase 1: Nvidia Driver
     - role: nvidia-driver
-      when: true
       tags: ["driver", "nvidia"]
 
     # Phase 2: CUDA Toolkit
     - role: cuda
-      when: true
       tags: ["cuda", "toolkit"]
 
     # Phase 3: Inference Stack
@@ -119,7 +90,6 @@
               - "=========================================="
               - "Nvidia Toolkit Setup Complete"
               - "=========================================="
-              - "Driver Version: {{ nvidia_driver_version }}"
               - "CUDA Version: {{ cuda_version }}"
               - "Inference Tools: {{ 'Installed' if install_inference else 'Skipped' }}"
               - ""

@@ -2,10 +2,6 @@
 ---
 # defaults file for cuda
 
-# CUDA version from group_vars (e.g., "12.3")
-# This gets overridden by group_vars/all.yml
-cuda_version: "{{ cuda_version | default('13.1') }}"
-
 # Convert version "12.3" to "12-3" for package names
 cuda_package_version: "{{ cuda_version | replace('.', '-') }}"
 

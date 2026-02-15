@@ -20,7 +20,6 @@ Installs NVIDIA CUDA Toolkit and deep learning libraries from NVIDIA's official 
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `cuda_version` | `13.1` | CUDA version to install |
 | `cuda_fedora_max_version` | `42` | Latest Fedora version with NVIDIA repo support |
 | `cuda_home` | `/opt/cuda-{version}` | CUDA installation path |
 | `cuda_symlink` | `/opt/cuda` | Symlink to CUDA installation |

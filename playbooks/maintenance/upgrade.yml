@@ -38,12 +38,6 @@
         state: latest
       register: cuda_upgrade
 
-    - name: Upgrade nvidia-container-toolkit
-      package:
-        name: nvidia-container-toolkit
-        state: latest
-      register: toolkit_upgrade
-
     - name: Rebuild akmods if driver was upgraded
       command: akmods --force
       when: driver_upgrade.changed
@@ -57,10 +51,6 @@
     - name: Regenerate initramfs if driver was upgraded
       command: dracut --force
       when: driver_upgrade.changed
-
-    - name: Regenerate CDI spec if container toolkit was upgraded
-      command: nvidia-ctk cdi generate --output=/etc/cdi/nvidia.yaml
-      when: toolkit_upgrade.changed
 
   post_tasks:
     - name: Check if reboot is required
@@ -87,8 +77,6 @@
           - "=========================================="
           - "Driver upgraded: {{ 'Yes' if driver_upgrade.changed else 'No (already latest)' }}"
           - "CUDA upgraded: {{ 'Yes' if cuda_upgrade.changed else 'No (already latest)' }}"
-          - "Container toolkit upgraded: {{ 'Yes' if toolkit_upgrade.changed else 'No (already
-            latest)' }}"
           - "Reboot required: {{ 'Yes' if reboot_required else 'No' }}"
           - ""
           - "Verify installation:"

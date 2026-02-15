@@ -8,7 +8,6 @@
 # ============================================
 # Nvidia Driver Configuration
 # ============================================
-nvidia_driver_version: "latest" # Recommended stable version, or use "latest"
 
 # ============================================
 # CUDA Toolkit Configuration
@@ -33,10 +32,3 @@ build_packages:
   - git
   - wget
   - curl
-
-# ============================================
-# Role Metadata
-# ============================================
-# Common metadata for all Ansible Galaxy roles
-role_author: "Wander Lairson Costa"
-role_license: "MIT"
