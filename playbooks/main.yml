@@ -110,11 +110,6 @@
       when: install_inference | default(true)
       tags: ["inference", "ollama"]
 
-    # Phase 4: Monitoring (Optional Enhancements)
-    - role: monitoring
-      when: install_monitoring | default(true)
-      tags: ["monitoring", "observability"]
-
   post_tasks:
     - name: Generate setup summary
       block:

@@ -1,6 +1,0 @@
----
-- name: Configure GPU Monitoring
-  hosts: all
-  become: true
-  roles:
-    - monitoring

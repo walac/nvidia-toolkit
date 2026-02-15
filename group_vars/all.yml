@@ -35,12 +35,6 @@ build_packages:
   - curl
 
 # ============================================
-# Monitoring
-# ============================================
-install_monitoring: true # Lightweight CLI tools (nvtop, btop)
-install_monitoring_stack: false # Full Prometheus/Grafana stack (optional)
-
-# ============================================
 # Role Metadata
 # ============================================
 # Common metadata for all Ansible Galaxy roles

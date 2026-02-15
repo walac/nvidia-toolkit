@@ -22,6 +22,8 @@ cuda_fedora_max_version: "42"
 # Install them separately via NVIDIA's cuDNN/NCCL downloads if needed.
 cuda_packages:
   - "cuda-toolkit-{{ cuda_package_version }}"
+  - nvtop
+  - btop
 
 # CUDA installation path
 cuda_home: "/opt/cuda-{{ cuda_version }}"
