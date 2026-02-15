@@ -16,13 +16,6 @@
       - "Kernel version: {{ ansible_kernel }}"
       - "Architecture: {{ ansible_architecture }}"
 
-- name: Update system packages
-  dnf:
-    name: "*"
-    state: latest
-    update_cache: true
-  tags: [system_update]
-
 - name: Install kernel development packages
   package:
     name:
@@ -34,31 +27,9 @@
       - elfutils-libelf-devel
     state: present
 
-- name: Check running kernel version
-  command: uname -r
-  register: running_kernel
-  changed_when: false
-
-- name: Check installed kernel-devel version
-  shell: rpm -q kernel-devel | grep $(uname -r) | wc -l
-  register: kernel_devel_match
-  changed_when: false
-  failed_when: false
-
-- name: Display kernel version compatibility
-  debug:
-    msg: >-
-      {{ 'Kernel-devel matches running kernel' if kernel_devel_match.stdout != '0' else 'WARNING:
-      kernel-devel does not match running kernel. A reboot may be required.' }}
-
 - name: Set distribution-specific repository paths
   set_fact:
     repo_dist_id: "{{ 'fedora' if ansible_distribution == 'Fedora' else 'el' }}"
-
-- name: Check if RPM Fusion repositories are enabled
-  command: dnf repolist
-  register: dnf_repolist
-  changed_when: false
 
 - name: Enable RPM Fusion Free repository
   dnf:
@@ -67,7 +38,6 @@
       ansible_distribution_major_version }}.noarch.rpm"
     state: present
     disable_gpg_check: true
-  when: "'rpmfusion-free' not in dnf_repolist.stdout"
 
 - name: Enable RPM Fusion Non-Free repository
   dnf:
@@ -76,24 +46,6 @@
       ansible_distribution_major_version }}.noarch.rpm"
     state: present
     disable_gpg_check: true
-  when: "'rpmfusion-nonfree' not in dnf_repolist.stdout"
-
-- name: Update DNF cache after adding RPM Fusion
-  dnf:
-    update_cache: true
-  when: "'rpmfusion-nonfree' not in dnf_repolist.stdout"
-
-- name: Check if nouveau is currently loaded
-  shell: lsmod | grep nouveau
-  register: nouveau_loaded
-  changed_when: false
-  failed_when: false
-
-- name: Display nouveau status
-  debug:
-    msg:
-      "{{ 'WARNING: nouveau driver is currently loaded' if nouveau_loaded.rc == 0 else 'nouveau
-      driver is not loaded' }}"
 
 - name: Install Nvidia driver packages from RPM Fusion
   dnf:
@@ -116,23 +68,29 @@
   when: akmods_build.changed
 
 - name: Check if nvidia kernel module exists
-  stat:
-    path: "/lib/modules/{{ ansible_kernel }}/extra/nvidia/nvidia.ko"
+  find:
+    paths: "/lib/modules/{{ ansible_kernel }}"
+    patterns: "nvidia.ko*"
+    recurse: true
+    file_type: file
   register: nvidia_module
 
 - name: Display nvidia module status
   debug:
     msg:
-      "{{ 'Nvidia kernel module built successfully' if nvidia_module.stat.exists else 'WARNING:
-      Nvidia kernel module not found - may require reboot' }}"
+      "{{ 'Nvidia kernel module found' if nvidia_module.matched > 0
+      else 'WARNING: Nvidia kernel module not found - may require reboot' }}"
 
 - name: Enable nvidia-persistenced service
   systemd:
     name: nvidia-persistenced
     enabled: true
     state: started
-  failed_when: false
-  when: nvidia_module.stat.exists
+  register: persistenced_result
+  failed_when:
+    - persistenced_result is failed
+    - "'could not find' not in (persistenced_result.msg | default('') | lower)"
+  when: nvidia_module.matched > 0
 
 - name: Display reboot instruction
   debug:

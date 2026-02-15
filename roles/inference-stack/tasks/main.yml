@@ -42,24 +42,29 @@
     group: root
     mode: "0755"
 
-- name: Check if Ollama binary exists
-  stat:
-    path: "{{ ollama_install_dir }}/bin/ollama"
-  register: ollama_binary_stat
+- name: Check installed Ollama version
+  command: "{{ ollama_install_dir }}/bin/ollama --version"
+  register: ollama_installed_version
+  changed_when: false
+  failed_when: false
+
+- name: Determine if Ollama install or upgrade is needed
+  set_fact:
+    ollama_needs_install: "{{ ollama_installed_version.rc != 0 or ollama_version not in (ollama_installed_version.stdout | default('')) }}"
 
 - name: Download Ollama tarball
   get_url:
     url: "{{ ollama_tarball_url }}"
     dest: "/tmp/ollama-{{ ollama_version }}.tar.zst"
     mode: "0644"
-  when: not ollama_binary_stat.stat.exists
+  when: ollama_needs_install
 
 - name: Extract Ollama tarball
   unarchive:
     src: "/tmp/ollama-{{ ollama_version }}.tar.zst"
     dest: "{{ ollama_install_dir }}"
     remote_src: true
-    creates: "{{ ollama_install_dir }}/bin/ollama"
+  when: ollama_needs_install
   register: ollama_extracted
 
 - name: Create symlink to ollama binary
@@ -86,12 +91,20 @@
 - name: Enable and start Ollama service
   systemd:
     name: ollama
-    state: "{{ 'restarted' if (ollama_extracted.changed | default(false) or ollama_service_config.changed | default(false)) else 'started' }}"
+    state: started
     enabled: true
 
+- name: Restart Ollama if binary or config changed
+  systemd:
+    name: ollama
+    state: restarted
+  when: ollama_extracted is changed or ollama_service_config is changed
+
 - name: Pull requested models
-  command: /usr/local/bin/ollama pull {{ item }}
+  command: "/usr/local/bin/ollama pull {{ item }}"
   loop: "{{ ollama_prepull_models }}"
-  when: ollama_prepull_models is defined and ollama_prepull_models | length > 0
+  register: ollama_pull_result
+  changed_when: "'downloading' in ollama_pull_result.stderr | default('')"
+  when: ollama_prepull_models | length > 0
   become: true
   become_user: "{{ ollama_user }}"

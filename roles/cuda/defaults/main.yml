@@ -2,7 +2,7 @@
 ---
 # defaults file for cuda
 
-# Convert version "12.3" to "12-3" for package names
+# Convert version "13.1" to "13-1" for package names
 cuda_package_version: "{{ cuda_version | replace('.', '-') }}"
 
 # Maximum Fedora version currently supported by NVIDIA's CUDA repository
@@ -21,6 +21,6 @@ cuda_packages:
   - nvtop
   - btop
 
-# CUDA installation path
-cuda_home: "/opt/cuda-{{ cuda_version }}"
-cuda_symlink: "/opt/cuda"
+# CUDA installation path (NVIDIA packages install to /usr/local/cuda-X.Y)
+cuda_home: "/usr/local/cuda-{{ cuda_version }}"
+cuda_symlink: "/usr/local/cuda"

@@ -7,7 +7,7 @@ model inference.
 
 - **Nvidia Driver Installation**: Automated driver setup via RPM Fusion
 - **CUDA Toolkit**: Full CUDA development environment
-- **Inference Tools**: Ollama, llama.cpp, and optional vLLM for local model inference
+- **Inference Tools**: Ollama for local model inference
 
 ## Supported Systems
 

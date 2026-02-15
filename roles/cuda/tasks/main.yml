@@ -42,7 +42,7 @@
     state: present
   register: cuda_install
 
-- name: Create /usr/local/cuda symlink
+- name: Create CUDA symlink
   file:
     src: "{{ cuda_home }}"
     dest: "{{ cuda_symlink }}"

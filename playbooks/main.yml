@@ -12,7 +12,6 @@
 #   - preflight: Pre-flight checks only
 #   - driver: Nvidia driver installation
 #   - cuda: CUDA toolkit installation
-#   - containers: Container runtime setup
 #   - inference: Inference tools
 # ============================================
 
@@ -33,12 +32,6 @@
 
     - name: Pre-flight checks
       block:
-        - name: Check if running as root or with sudo
-          assert:
-            that: ansible_user_uid == 0 or ansible_become
-            fail_msg: "This playbook requires root privileges or sudo access"
-            success_msg: "Privilege escalation available"
-
         - name: Detect GPU hardware
           shell: lspci | grep -i nvidia
           register: gpu_check
@@ -50,21 +43,6 @@
             that: gpu_check.rc == 0
             fail_msg: "No Nvidia GPU detected on this system"
             success_msg: "Nvidia GPU detected: {{ gpu_check.stdout_lines | first | default('unknown') }}"
-
-        - name: Check kernel headers are available
-          package:
-            name:
-              "{{ 'linux-headers-' + ansible_kernel if ansible_os_family == 'Debian' else
-              'kernel-devel' }}"
-            state: present
-          check_mode: true
-          register: kernel_headers_check
-
-        - name: Display kernel headers status
-          debug:
-            msg:
-              "Kernel headers check: {{ 'installed' if not kernel_headers_check.changed else 'need
-              installation' }}"
       tags: ["preflight", "always"]
 
   roles:
@@ -82,25 +60,19 @@
       tags: ["inference", "ollama"]
 
   post_tasks:
-    - name: Generate setup summary
-      block:
-        - name: Create summary
-          set_fact:
-            setup_summary:
-              - "=========================================="
-              - "Nvidia Toolkit Setup Complete"
-              - "=========================================="
-              - "CUDA Version: {{ cuda_version }}"
-              - "Inference Tools: {{ 'Installed' if install_inference else 'Skipped' }}"
-              - ""
-              - "Next Steps:"
-              - "  1. Verify GPU access: nvidia-smi"
-              - "  2. Test CUDA: nvcc --version"
-              - "  3. Test Python GPU: python3 -c 'import torch; print(torch.cuda.is_available())'"
-              - "  4. Start using your GPU-accelerated environment!"
-              - "=========================================="
-
-        - name: Display summary
-          debug:
-            msg: "{{ setup_summary }}"
+    - name: Display setup summary
+      debug:
+        msg:
+          - "=========================================="
+          - "Nvidia Toolkit Setup Complete"
+          - "=========================================="
+          - "CUDA Version: {{ cuda_version }}"
+          - "Inference Tools: {{ 'Installed' if install_inference else 'Skipped' }}"
+          - ""
+          - "Next Steps:"
+          - "  1. Verify GPU access: nvidia-smi"
+          - "  2. Test CUDA: nvcc --version"
+          - "  3. Test Python GPU: python3 -c 'import torch; print(torch.cuda.is_available())'"
+          - "  4. Start using your GPU-accelerated environment!"
+          - "=========================================="
       tags: ["always"]

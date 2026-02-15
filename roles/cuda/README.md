@@ -1,6 +1,6 @@
 # cuda
 
-Installs NVIDIA CUDA Toolkit and deep learning libraries from NVIDIA's official repository.
+Installs NVIDIA CUDA Toolkit from NVIDIA's official repository.
 
 ## What It Does
 
@@ -21,8 +21,8 @@ Installs NVIDIA CUDA Toolkit and deep learning libraries from NVIDIA's official 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `cuda_fedora_max_version` | `42` | Latest Fedora version with NVIDIA repo support |
-| `cuda_home` | `/opt/cuda-{version}` | CUDA installation path |
-| `cuda_symlink` | `/opt/cuda` | Symlink to CUDA installation |
+| `cuda_home` | `/usr/local/cuda-{version}` | CUDA installation path |
+| `cuda_symlink` | `/usr/local/cuda` | Symlink to CUDA installation |
 
 ### Default Packages
 
@@ -48,7 +48,8 @@ conda activate ml
 conda install -c nvidia cudnn
 
 # Or install with PyTorch (includes cuDNN automatically)
-conda install pytorch torchvision torchaudio pytorch-cuda=13.1 -c pytorch -c nvidia
+# Replace the pytorch-cuda version to match your installed cuda_version
+conda install pytorch torchvision torchaudio pytorch-cuda -c pytorch -c nvidia
 ```
 
 Verify installation:

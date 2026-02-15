@@ -3,11 +3,7 @@
 # Global Variables for Nvidia Toolkit Setup
 # ============================================
 # These variables apply to all hosts unless overridden
-# in group_vars/<group>.yml or host_vars/<host>.yml
-
-# ============================================
-# Nvidia Driver Configuration
-# ============================================
+# in group-specific or host-specific variable files.
 
 # ============================================
 # CUDA Toolkit Configuration
@@ -18,17 +14,3 @@ cuda_version: "13.1"
 # Inference Tools Configuration
 # ============================================
 install_inference: true
-
-# ============================================
-# Development Environment
-# ============================================
-# Build tools for CUDA development
-install_build_tools: true
-build_packages:
-  - gcc
-  - gcc-c++
-  - make
-  - cmake
-  - git
-  - wget
-  - curl
