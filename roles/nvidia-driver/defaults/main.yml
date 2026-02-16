@@ -1,4 +1,4 @@
-#SPDX-License-Identifier: MIT-0
+# SPDX-License-Identifier: MIT-0
 ---
 # defaults file for nvidia-driver
 
@@ -9,4 +9,3 @@ nvidia_driver_packages:
   - xorg-x11-drv-nvidia-power # Power management for Nvidia GPUs
   - nvidia-settings # GUI configuration tool
   - libvdpau # Video acceleration library
-

@@ -30,6 +30,7 @@
       tags: always
 
     - name: Pre-flight checks
+      tags: always
       block:
         - name: Ensure pciutils is installed
           dnf:
@@ -37,7 +38,7 @@
             state: present
 
         - name: Detect GPU hardware
-          shell: lspci | grep -i nvidia
+          shell: set -o pipefail && lspci | grep -i nvidia
           register: gpu_check
           changed_when: false
           failed_when: false
@@ -47,7 +48,6 @@
             that: gpu_check.rc == 0
             fail_msg: "No Nvidia GPU detected on this system"
             success_msg: "Nvidia GPU detected: {{ gpu_check.stdout_lines | first | default('unknown') }}"
-      tags: always
 
   roles:
     # Phase 1: Nvidia Driver

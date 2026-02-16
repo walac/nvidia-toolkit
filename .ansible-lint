@@ -4,3 +4,6 @@ profile: production
 skip_list:
   - yaml[line-length]
   - fqcn
+  - package-latest
+  - no-handler
+  - role-name

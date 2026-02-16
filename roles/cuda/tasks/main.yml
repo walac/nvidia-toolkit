@@ -1,4 +1,4 @@
-#SPDX-License-Identifier: MIT-0
+# SPDX-License-Identifier: MIT-0
 ---
 # tasks file for cuda
 
@@ -61,6 +61,6 @@
 
 - name: Verify CUDA installation
   command: "{{ cuda_symlink }}/bin/nvcc --version"
-  register: nvcc_check
+  register: cuda_nvcc_check
   changed_when: false
-  failed_when: nvcc_check.rc != 0
+  failed_when: cuda_nvcc_check.rc != 0

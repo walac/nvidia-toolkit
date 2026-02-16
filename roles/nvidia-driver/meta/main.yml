@@ -1,7 +1,7 @@
-#SPDX-License-Identifier: MIT-0
+# SPDX-License-Identifier: MIT-0
 ---
 galaxy_info:
-  role_name: nvidia-driver
+  role_name: nvidia_driver
   author: Wander Lairson Costa
   description: Install NVIDIA proprietary drivers from RPM Fusion
   license: MIT-0
