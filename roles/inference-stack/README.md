@@ -7,36 +7,25 @@ Installs Ollama for local LLM inference with GPU acceleration.
 - Downloads and installs Ollama binary
 - Creates dedicated ollama system user and group
 - Sets up data and model directories
-- Configures systemd service for automatic startup
-- Optionally pre-pulls specified models
+- Configures systemd service with security hardening
 
 ## Requirements
 
 - Fedora 40+ (RedHat family systems)
 - nvidia-driver and cuda roles should be applied first for GPU support
-- Internet access to download Ollama and models
+- Internet access to download Ollama
 
 ## Role Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ollama_version` | `0.16.1` | Ollama version to install |
+| `ollama_arch` | auto-detected | Architecture for download (`amd64` or `arm64`) |
 | `ollama_install_dir` | `/opt/ollama` | Installation directory for extracted files |
 | `ollama_user` | `ollama` | System user for the service |
 | `ollama_group` | `ollama` | System group for the service |
 | `ollama_data_dir` | `/var/lib/ollama` | Data storage directory |
 | `ollama_models_dir` | `/var/lib/ollama/models` | Model storage directory |
-| `ollama_prepull_models` | `[]` | Models to download during install |
-
-### Pre-pulling Models
-
-To automatically download models during installation:
-
-```yaml
-ollama_prepull_models:
-  - llama2:7b
-  - codellama:7b
-```
 
 ## Dependencies
 
@@ -56,17 +45,17 @@ ollama_prepull_models:
 
 ## Usage
 
-After installation:
+After installation, pull and run models:
 
 ```bash
 # Check service status
 systemctl status ollama
 
-# List models
-ollama list
-
 # Pull a model
 ollama pull llama2:7b
+
+# List models
+ollama list
 
 # Run inference
 ollama run llama2:7b "Hello, world!"

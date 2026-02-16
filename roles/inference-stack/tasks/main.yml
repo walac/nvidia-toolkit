@@ -3,7 +3,7 @@
 # tasks file for inference-stack
 
 - name: Install zstd for tarball extraction
-  package:
+  dnf:
     name: zstd
     state: present
 
@@ -34,14 +34,6 @@
     - "{{ ollama_data_dir }}"
     - "{{ ollama_models_dir }}"
 
-- name: Create Ollama installation directory
-  file:
-    path: "{{ ollama_install_dir }}"
-    state: directory
-    owner: root
-    group: root
-    mode: "0755"
-
 - name: Check installed Ollama version
   command: "{{ ollama_install_dir }}/bin/ollama --version"
   register: ollama_installed_version
@@ -50,7 +42,9 @@
 
 - name: Determine if Ollama install or upgrade is needed
   set_fact:
-    ollama_needs_install: "{{ ollama_installed_version.rc != 0 or ollama_version not in (ollama_installed_version.stdout | default('')) }}"
+    ollama_needs_install: >-
+      {{ ollama_installed_version.rc != 0 or
+         ollama_version != (ollama_installed_version.stdout | default('') | regex_search('[0-9]+\.[0-9]+\.[0-9]+') | default('')) }}
 
 - name: Download Ollama tarball
   get_url:
@@ -58,6 +52,24 @@
     dest: "/tmp/ollama-{{ ollama_version }}.tar.zst"
     mode: "0644"
   when: ollama_needs_install
+  retries: 3
+  delay: 5
+  register: ollama_download
+  until: ollama_download is success
+
+- name: Remove old Ollama installation before upgrade
+  file:
+    path: "{{ ollama_install_dir }}"
+    state: absent
+  when: ollama_needs_install
+
+- name: Create Ollama installation directory
+  file:
+    path: "{{ ollama_install_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
 
 - name: Extract Ollama tarball
   unarchive:
@@ -65,7 +77,15 @@
     dest: "{{ ollama_install_dir }}"
     remote_src: true
   when: ollama_needs_install
-  register: ollama_extracted
+  notify:
+    - Restart ollama
+
+- name: Verify Ollama binary was extracted
+  stat:
+    path: "{{ ollama_install_dir }}/bin/ollama"
+  register: ollama_binary
+  failed_when: not ollama_binary.stat.exists
+  when: ollama_needs_install
 
 - name: Create symlink to ollama binary
   file:
@@ -81,30 +101,12 @@
     owner: root
     group: root
     mode: "0644"
-  register: ollama_service_config
-
-- name: Reload systemd daemon
-  systemd:
-    daemon_reload: true
-  when: ollama_service_config.changed
+  notify:
+    - Reload systemd
+    - Restart ollama
 
 - name: Enable and start Ollama service
   systemd:
     name: ollama
     state: started
     enabled: true
-
-- name: Restart Ollama if binary or config changed
-  systemd:
-    name: ollama
-    state: restarted
-  when: ollama_extracted is changed or ollama_service_config is changed
-
-- name: Pull requested models
-  command: "/usr/local/bin/ollama pull {{ item }}"
-  loop: "{{ ollama_prepull_models }}"
-  register: ollama_pull_result
-  changed_when: "'downloading' in ollama_pull_result.stderr | default('')"
-  when: ollama_prepull_models | length > 0
-  become: true
-  become_user: "{{ ollama_user }}"

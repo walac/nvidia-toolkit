@@ -25,19 +25,21 @@
   yum_repository:
     name: cuda
     description: Nvidia CUDA Repository
-    baseurl: "https://developer.download.nvidia.com/compute/cuda/repos/{{ cuda_dist_id }}{{ cuda_dist_version }}/x86_64/"
-    gpgkey: "https://developer.download.nvidia.com/compute/cuda/repos/{{ cuda_dist_id }}{{ cuda_dist_version }}/x86_64/D42D0685.pub"
+    baseurl: "https://developer.download.nvidia.com/compute/cuda/repos/{{ cuda_dist_id }}{{ cuda_dist_version }}/{{ cuda_repo_arch }}/"
+    gpgkey: "https://developer.download.nvidia.com/compute/cuda/repos/{{ cuda_dist_id }}{{ cuda_dist_version }}/{{ cuda_repo_arch }}/{{ cuda_repo_gpgkey_id }}.pub"
     gpgcheck: true
     enabled: true
     # Exclude driver packages to prevent conflict with RPM Fusion akmods
     exclude: "xorg-x11-drv-nvidia* kmod-nvidia* akmod-nvidia* nvidia-driver* nvidia-settings* *cuda-drivers* nvidia-kmod-common*"
+  register: cuda_repo
 
 - name: Update DNF cache for CUDA repository
   dnf:
     update_cache: true
+  when: cuda_repo is changed
 
 - name: Install CUDA Toolkit
-  package:
+  dnf:
     name: "{{ cuda_packages }}"
     state: present
   register: cuda_install
@@ -56,3 +58,9 @@
     owner: root
     group: root
     mode: "0644"
+
+- name: Verify CUDA installation
+  command: "{{ cuda_symlink }}/bin/nvcc --version"
+  register: nvcc_check
+  changed_when: false
+  failed_when: nvcc_check.rc != 0

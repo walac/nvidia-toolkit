@@ -13,6 +13,13 @@ cuda_package_version: "{{ cuda_version | replace('.', '-') }}"
 # using this version's repository to ensure compatibility.
 cuda_fedora_max_version: "42"
 
+# Repository architecture (x86_64 or sbsa for ARM servers)
+cuda_repo_arch: "{{ 'sbsa' if ansible_architecture == 'aarch64' else 'x86_64' }}"
+
+# NVIDIA CUDA repository GPG key identifier
+# Update this if NVIDIA rotates their signing key
+cuda_repo_gpgkey_id: "D42D0685"
+
 # CUDA toolkit packages
 # Note: cuDNN and NCCL are not in NVIDIA's CUDA repo for Fedora.
 # Install them separately via NVIDIA's cuDNN/NCCL downloads if needed.

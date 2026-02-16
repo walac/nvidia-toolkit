@@ -1,10 +1,11 @@
-# Ansible managed: Ollama systemd service
+# {{ ansible_managed }}
 # DO NOT EDIT MANUALLY
 
 [Unit]
 Description=Ollama Service - Local LLM Inference
 Documentation=https://github.com/ollama/ollama
-After=network-online.target
+Wants=network-online.target
+After=network-online.target nvidia-persistenced.service
 
 [Service]
 Type=simple
@@ -28,6 +29,10 @@ WorkingDirectory={{ ollama_data_dir }}
 # Security hardening
 NoNewPrivileges=true
 PrivateTmp=true
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
 
 [Install]
 WantedBy=multi-user.target

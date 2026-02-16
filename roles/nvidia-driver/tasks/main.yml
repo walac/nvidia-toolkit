@@ -17,7 +17,7 @@
       - "Architecture: {{ ansible_architecture }}"
 
 - name: Install kernel development packages
-  package:
+  dnf:
     name:
       - kernel-devel
       - kernel-headers
@@ -38,6 +38,10 @@
       ansible_distribution_major_version }}.noarch.rpm"
     state: present
     disable_gpg_check: true
+  retries: 3
+  delay: 5
+  register: rpmfusion_free
+  until: rpmfusion_free is success
 
 - name: Enable RPM Fusion Non-Free repository
   dnf:
@@ -46,6 +50,10 @@
       ansible_distribution_major_version }}.noarch.rpm"
     state: present
     disable_gpg_check: true
+  retries: 3
+  delay: 5
+  register: rpmfusion_nonfree
+  until: rpmfusion_nonfree is success
 
 - name: Install Nvidia driver packages from RPM Fusion
   dnf:
@@ -65,7 +73,7 @@
 - name: Display akmods build output
   debug:
     var: akmods_build.stdout_lines
-  when: akmods_build.changed
+  when: akmods_build is defined and akmods_build is changed
 
 - name: Check if nvidia kernel module exists
   find:

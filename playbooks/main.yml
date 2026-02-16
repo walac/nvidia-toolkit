@@ -9,7 +9,6 @@
 #   ansible-playbook playbooks/main.yml
 #
 # Tags available:
-#   - preflight: Pre-flight checks only
 #   - driver: Nvidia driver installation
 #   - cuda: CUDA toolkit installation
 #   - inference: Inference tools
@@ -32,6 +31,11 @@
 
     - name: Pre-flight checks
       block:
+        - name: Ensure pciutils is installed
+          dnf:
+            name: pciutils
+            state: present
+
         - name: Detect GPU hardware
           shell: lspci | grep -i nvidia
           register: gpu_check
@@ -43,7 +47,7 @@
             that: gpu_check.rc == 0
             fail_msg: "No Nvidia GPU detected on this system"
             success_msg: "Nvidia GPU detected: {{ gpu_check.stdout_lines | first | default('unknown') }}"
-      tags: ["preflight", "always"]
+      tags: always
 
   roles:
     # Phase 1: Nvidia Driver
@@ -72,7 +76,6 @@
           - "Next Steps:"
           - "  1. Verify GPU access: nvidia-smi"
           - "  2. Test CUDA: nvcc --version"
-          - "  3. Test Python GPU: python3 -c 'import torch; print(torch.cuda.is_available())'"
-          - "  4. Start using your GPU-accelerated environment!"
+          - "  3. Start using your GPU-accelerated environment!"
           - "=========================================="
-      tags: ["always"]
+      tags: always

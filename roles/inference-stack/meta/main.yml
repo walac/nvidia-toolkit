@@ -1,0 +1,20 @@
+#SPDX-License-Identifier: MIT-0
+---
+galaxy_info:
+  role_name: inference-stack
+  author: Wander Lairson Costa
+  description: Install Ollama for local LLM inference with GPU acceleration
+  license: MIT-0
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Fedora
+      versions:
+        - "40"
+        - "41"
+        - "42"
+    - name: EL
+      versions:
+        - "9"
+
+dependencies: []
+# Note: nvidia-driver and cuda roles should be applied before this role

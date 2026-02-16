@@ -5,8 +5,11 @@
 # Ollama version (check https://github.com/ollama/ollama/releases)
 ollama_version: "0.16.1"
 
+# Architecture for download URL (amd64 or arm64)
+ollama_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+
 # Ollama tarball download URL (releases are .tar.zst compressed)
-ollama_tarball_url: "https://github.com/ollama/ollama/releases/download/v{{ ollama_version }}/ollama-linux-amd64.tar.zst"
+ollama_tarball_url: "https://github.com/ollama/ollama/releases/download/v{{ ollama_version }}/ollama-linux-{{ ollama_arch }}.tar.zst"
 
 # Ollama installation directory (extracted tarball contents)
 ollama_install_dir: "/opt/ollama"
@@ -18,11 +21,3 @@ ollama_group: "ollama"
 # Data and model storage directories
 ollama_data_dir: "/var/lib/ollama"
 ollama_models_dir: "{{ ollama_data_dir }}/models"
-
-# Optional: Pre-pull models during installation
-# Set to empty list to skip model pulling
-ollama_prepull_models: []
-# Example:
-# ollama_prepull_models:
-#   - llama2:7b
-#   - codellama:7b

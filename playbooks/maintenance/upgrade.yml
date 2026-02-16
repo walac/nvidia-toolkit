@@ -42,21 +42,28 @@
       command: akmods --force
       when: driver_upgrade.changed
       register: akmods_rebuild
+      changed_when: "'Rebuilding' in akmods_rebuild.stdout or 'Building' in akmods_rebuild.stdout"
 
     - name: Display akmods rebuild status
       debug:
         msg: "{{ akmods_rebuild.stdout_lines }}"
-      when: akmods_rebuild is defined and akmods_rebuild.changed
+      when: akmods_rebuild is defined and akmods_rebuild is changed
 
     - name: Regenerate initramfs if driver was upgraded
       command: dracut --force
       when: driver_upgrade.changed
+      changed_when: true
+
+    - name: Upgrade Ollama
+      include_role:
+        name: inference-stack
+      when: install_inference | default(true)
 
   post_tasks:
     - name: Check if reboot is required
       set_fact:
         reboot_required:
-          "{{ driver_upgrade.changed or (akmods_rebuild is defined and akmods_rebuild.changed) }}"
+          "{{ driver_upgrade.changed or (akmods_rebuild is defined and akmods_rebuild is changed) }}"
 
     - name: Display reboot instruction
       debug:
