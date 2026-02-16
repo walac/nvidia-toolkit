@@ -71,7 +71,7 @@
           - "Nvidia Toolkit Setup Complete"
           - "=========================================="
           - "CUDA Version: {{ cuda_version }}"
-          - "Inference Tools: {{ 'Installed' if install_inference else 'Skipped' }}"
+          - "Inference Tools: {{ 'Installed' if (install_inference | default(true)) else 'Skipped' }}"
           - ""
           - "Next Steps:"
           - "  1. Verify GPU access: nvidia-smi"

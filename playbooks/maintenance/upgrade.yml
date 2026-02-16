@@ -49,11 +49,6 @@
         msg: "{{ akmods_rebuild.stdout_lines }}"
       when: akmods_rebuild is defined and akmods_rebuild is changed
 
-    - name: Regenerate initramfs if driver was upgraded
-      command: dracut --force
-      when: driver_upgrade.changed
-      changed_when: true
-
     - name: Upgrade Ollama
       include_role:
         name: inference-stack

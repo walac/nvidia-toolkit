@@ -21,6 +21,8 @@ Installs NVIDIA CUDA Toolkit from NVIDIA's official repository.
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `cuda_fedora_max_version` | `42` | Latest Fedora version with NVIDIA repo support |
+| `cuda_repo_arch` | auto-detected | Repository architecture (`x86_64` or `sbsa` for ARM) |
+| `cuda_repo_gpgkey_id` | `D42D0685` | NVIDIA CUDA repository GPG key identifier |
 | `cuda_home` | `/usr/local/cuda-{version}` | CUDA installation path |
 | `cuda_symlink` | `/usr/local/cuda` | Symlink to CUDA installation |
 

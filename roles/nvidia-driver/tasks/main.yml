@@ -59,7 +59,7 @@
   dnf:
     name: "{{ nvidia_driver_packages }}"
     state: present
-    enablerepo: rpmfusion-nonfree
+    enablerepo: rpmfusion-nonfree*
   register: nvidia_install
 
 - name: Wait for akmods to build kernel modules
