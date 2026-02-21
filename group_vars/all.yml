@@ -14,3 +14,7 @@ cuda_version: "13.1"
 # Inference Tools Configuration
 # ============================================
 install_inference: true
+
+# Ollama version (check https://github.com/ollama/ollama/releases)
+ollama_version: "0.17.0"
+

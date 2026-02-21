@@ -2,9 +2,6 @@
 ---
 # defaults file for inference-stack
 
-# Ollama version (check https://github.com/ollama/ollama/releases)
-ollama_version: "0.16.1"
-
 # Architecture for download URL (amd64 or arm64)
 ollama_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
 
