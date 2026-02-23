@@ -4,28 +4,15 @@ Installs Ollama for local LLM inference with GPU acceleration.
 
 ## What It Does
 
-- Downloads and installs Ollama binary
-- Creates dedicated ollama system user and group
-- Sets up data and model directories
-- Configures systemd service with security hardening
+- Queries the GitHub API for the latest Ollama release
+- Compares against the installed version (if any)
+- Installs or upgrades Ollama using the official install script
 
 ## Requirements
 
 - Fedora 40+ (RedHat family systems)
 - nvidia-driver and cuda roles should be applied first for GPU support
 - Internet access to download Ollama
-
-## Role Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ollama_version` | `0.16.1` | Ollama version to install |
-| `ollama_arch` | auto-detected | Architecture for download (`amd64` or `arm64`) |
-| `ollama_install_dir` | `/opt/ollama` | Installation directory for extracted files |
-| `ollama_user` | `ollama` | System user for the service |
-| `ollama_group` | `ollama` | System group for the service |
-| `ollama_data_dir` | `/var/lib/ollama` | Data storage directory |
-| `ollama_models_dir` | `/var/lib/ollama/models` | Model storage directory |
 
 ## Dependencies
 

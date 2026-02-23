@@ -2,40 +2,20 @@
 ---
 # tasks file for inference-stack
 
-- name: Install zstd for tarball extraction
-  dnf:
-    name: zstd
-    state: present
+- name: Query latest Ollama release from GitHub
+  uri:
+    url: https://api.github.com/repos/ollama/ollama/releases/latest
+    return_content: true
+    headers:
+      Accept: application/vnd.github+json
+  register: ollama_latest_release
 
-- name: Create ollama system group
-  group:
-    name: "{{ ollama_group }}"
-    state: present
-    system: true
-
-- name: Create ollama system user
-  user:
-    name: "{{ ollama_user }}"
-    group: "{{ ollama_group }}"
-    shell: /sbin/nologin
-    system: true
-    create_home: false
-    home: "{{ ollama_data_dir }}"
-    comment: "Ollama service user"
-
-- name: Create ollama data directories
-  file:
-    path: "{{ item }}"
-    state: directory
-    owner: "{{ ollama_user }}"
-    group: "{{ ollama_group }}"
-    mode: "0755"
-  loop:
-    - "{{ ollama_data_dir }}"
-    - "{{ ollama_models_dir }}"
+- name: Set latest Ollama version
+  set_fact:
+    ollama_version: "{{ ollama_latest_release.json.tag_name | regex_replace('^v', '') }}"
 
 - name: Check installed Ollama version
-  command: "{{ ollama_install_dir }}/bin/ollama --version"
+  command: ollama --version
   register: ollama_installed_version
   changed_when: false
   failed_when: false
@@ -44,69 +24,15 @@
   set_fact:
     ollama_needs_install: >-
       {{ ollama_installed_version.rc != 0 or
-         ollama_version != (ollama_installed_version.stdout | default('') | regex_search('[0-9]+\.[0-9]+\.[0-9]+') | default('')) }}
+         ollama_version is version(
+           ollama_installed_version.stdout | default('') | regex_search('[0-9]+\.[0-9]+\.[0-9]+') | default('0.0.0'),
+           '>'
+         ) }}
 
-- name: Download Ollama tarball
-  get_url:
-    url: "{{ ollama_tarball_url }}"
-    dest: "/tmp/ollama-{{ ollama_version }}.tar.zst"
-    mode: "0644"
+- name: Install or upgrade Ollama
+  shell:
+    cmd: curl -fsSL https://ollama.com/install.sh | sh
   when: ollama_needs_install
-  retries: 3
-  delay: 5
-  register: ollama_download
-  until: ollama_download is success
+  register: ollama_install
+  changed_when: ollama_install.rc == 0
 
-- name: Remove old Ollama installation before upgrade
-  file:
-    path: "{{ ollama_install_dir }}"
-    state: absent
-  when: ollama_needs_install
-
-- name: Create Ollama installation directory
-  file:
-    path: "{{ ollama_install_dir }}"
-    state: directory
-    owner: root
-    group: root
-    mode: "0755"
-
-- name: Extract Ollama tarball
-  unarchive:
-    src: "/tmp/ollama-{{ ollama_version }}.tar.zst"
-    dest: "{{ ollama_install_dir }}"
-    remote_src: true
-  when: ollama_needs_install
-  notify:
-    - Restart ollama
-
-- name: Verify Ollama binary was extracted
-  stat:
-    path: "{{ ollama_install_dir }}/bin/ollama"
-  register: ollama_binary
-  failed_when: not ollama_binary.stat.exists
-  when: ollama_needs_install
-
-- name: Create symlink to ollama binary
-  file:
-    src: "{{ ollama_install_dir }}/bin/ollama"
-    dest: /usr/local/bin/ollama
-    state: link
-    force: true
-
-- name: Configure Ollama systemd service
-  template:
-    src: ollama.service.j2
-    dest: /etc/systemd/system/ollama.service
-    owner: root
-    group: root
-    mode: "0644"
-  notify:
-    - Reload systemd
-    - Restart ollama
-
-- name: Enable and start Ollama service
-  systemd:
-    name: ollama
-    state: started
-    enabled: true
