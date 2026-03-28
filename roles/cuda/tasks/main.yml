@@ -30,7 +30,7 @@
     gpgcheck: true
     enabled: true
     # Exclude driver packages to prevent conflict with RPM Fusion akmods
-    exclude: "xorg-x11-drv-nvidia* kmod-nvidia* akmod-nvidia* nvidia-driver* nvidia-settings* *cuda-drivers* nvidia-kmod-common*"
+    exclude: "xorg-x11-drv-nvidia* kmod-nvidia* akmod-nvidia* nvidia-driver* nvidia-settings* *cuda-drivers* nvidia-kmod-common* nvidia-modprobe* nvidia-persistenced*"
   register: cuda_repo
 
 - name: Update DNF cache for CUDA repository
