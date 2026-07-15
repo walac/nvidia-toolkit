@@ -85,13 +85,30 @@
     mode: "0644"
   notify: Rebuild initramfs
 
-- name: Deploy kernel-install plugin for NVIDIA initramfs rebuild
+- name: Deploy helper script to rebuild initramfs after akmods
   copy:
-    src: 99-nvidia-rebuild.install
-    dest: /etc/kernel/install.d/99-nvidia-rebuild.install
+    src: nvidia-akmods-dracut.sh
+    dest: /usr/local/libexec/nvidia-akmods-dracut.sh
     owner: root
     group: root
     mode: "0755"
+
+- name: Ensure akmods@.service drop-in directory exists
+  file:
+    path: /etc/systemd/system/akmods@.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy systemd drop-in to rebuild initramfs after akmods
+  copy:
+    src: akmods-nvidia-dracut.conf
+    dest: /etc/systemd/system/akmods@.service.d/nvidia-dracut.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd daemon
 
 - name: Check if nvidia kernel module exists
   find:
