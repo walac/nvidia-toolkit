@@ -61,7 +61,6 @@
     state: present
     enablerepo: rpmfusion-nonfree*
   register: nvidia_install
-  notify: Rebuild initramfs
 
 - name: Wait for akmods to build kernel modules
   command: akmods --force
@@ -75,15 +74,6 @@
   debug:
     var: akmods_build.stdout_lines
   when: akmods_build is defined and akmods_build is changed
-
-- name: Deploy dracut config for early NVIDIA module loading
-  copy:
-    src: nvidia-dracut.conf
-    dest: /etc/dracut.conf.d/nvidia.conf
-    owner: root
-    group: root
-    mode: "0644"
-  notify: Rebuild initramfs
 
 - name: Deploy helper script to rebuild initramfs after akmods
   copy:

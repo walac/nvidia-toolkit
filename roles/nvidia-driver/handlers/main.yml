@@ -2,9 +2,6 @@
 ---
 # handlers file for nvidia-driver
 
-- name: Rebuild initramfs
-  command: dracut -f
-
 - name: Reload systemd daemon
   systemd:
     daemon_reload: true

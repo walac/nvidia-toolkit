@@ -25,7 +25,7 @@ KERNEL_VERSION="$1"
 [ -n "$KERNEL_VERSION" ] || exit 0
 
 if find "/lib/modules/$KERNEL_VERSION" -name 'nvidia.ko*' -print -quit 2>/dev/null | grep -q .; then
-    if ! dracut -f --kver "$KERNEL_VERSION"; then
+    if ! dracut -f --kver "$KERNEL_VERSION" --add-drivers "nvidia nvidia_modeset nvidia_uvm nvidia_drm"; then
         echo "warning: dracut failed to rebuild initramfs for $KERNEL_VERSION" >&2
     fi
 fi
