@@ -8,7 +8,7 @@
 # ============================================
 # CUDA Toolkit Configuration
 # ============================================
-cuda_version: "13.1"
+cuda_version: "13.4"
 
 # ============================================
 # Inference Tools Configuration

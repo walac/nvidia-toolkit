@@ -35,7 +35,7 @@ ansible-playbook playbooks/main.yml --tags inference   # Inference tools
 
 NVIDIA's CUDA repositories often trail the latest Fedora release. This automation includes a
 fallback mechanism: if your Fedora version is newer than the available NVIDIA repositories
-(currently Fedora 42), it will automatically use the repository for the latest supported version.
+(currently Fedora 44), it will automatically use the repository for the latest supported version.
 
 You can check/modify the `cuda_fedora_max_version` variable in `roles/cuda/defaults/main.yml`
 when NVIDIA releases updated repositories.
