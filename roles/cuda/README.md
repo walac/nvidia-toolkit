@@ -18,20 +18,10 @@ Installs NVIDIA CUDA Toolkit from NVIDIA's official repository.
 
 ## Role Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `cuda_fedora_max_version` | `44` | Latest Fedora version with NVIDIA repo support |
-| `cuda_repo_arch` | auto-detected | Repository architecture (`x86_64` or `sbsa` for ARM) |
-| `cuda_repo_gpgkey_id` | `73CD9B30` | NVIDIA CUDA repository GPG key identifier |
-| `cuda_home` | `/usr/local/cuda-{version}` | CUDA installation path |
-| `cuda_symlink` | `/usr/local/cuda` | Symlink to CUDA installation |
+Editable values (`cuda_version`, `cuda_fedora_max_version`, `cuda_repo_gpgkey_id`,
+`cuda_packages`, `cuda_home`, `package_state`) are in `group_vars/all.yml`.
 
-### Default Packages
-
-```yaml
-cuda_packages:
-  - cuda-toolkit-{version}
-```
+`cuda_repo_arch` is fact-derived in this role's defaults.
 
 Note: cuDNN and NCCL are not available in NVIDIA's CUDA repository for Fedora.
 See the section below for installation instructions.
@@ -66,7 +56,7 @@ NVIDIA's CUDA repositories often lag behind Fedora releases. If your Fedora vers
 is newer than `cuda_fedora_max_version`, the role automatically uses the repository
 for the latest supported version.
 
-Update `cuda_fedora_max_version` when NVIDIA releases repos for newer Fedora versions.
+Update `cuda_fedora_max_version` in `group_vars/all.yml` when NVIDIA releases repos for newer Fedora versions.
 
 ## Dependencies
 

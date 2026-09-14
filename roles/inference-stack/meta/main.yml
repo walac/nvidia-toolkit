@@ -7,13 +7,10 @@ galaxy_info:
   license: MIT-0
   min_ansible_version: "2.15"
   platforms:
+    # Galaxy Fedora version enum lags current releases (44+).
     - name: Fedora
       versions:
-        - "40"
-        - "41"
-        - "42"
-        - "43"
-        - "44"
+        - all
     - name: EL
       versions:
         - "9"

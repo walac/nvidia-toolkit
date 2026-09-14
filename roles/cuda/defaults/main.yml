@@ -1,33 +1,6 @@
 # SPDX-License-Identifier: MIT-0
 ---
-# defaults file for cuda
-
-# Convert version "13.1" to "13-1" for package names
-cuda_package_version: "{{ cuda_version | replace('.', '-') }}"
-
-# Maximum Fedora version currently supported by NVIDIA's CUDA repository
-# NVIDIA often lags behind Fedora releases. When a new Fedora version is released
-# (e.g., F43), we often need to point to the repository of the previous stable
-# version (e.g., F42) until NVIDIA updates their repos.
-# If the detected Fedora version is newer than this, the role will fall back to
-# using this version's repository to ensure compatibility.
-cuda_fedora_max_version: "44"
+# Fact-derived only. Editable CUDA settings live in group_vars/all.yml.
 
 # Repository architecture (x86_64 or sbsa for ARM servers)
-cuda_repo_arch: "{{ 'sbsa' if ansible_architecture == 'aarch64' else 'x86_64' }}"
-
-# NVIDIA CUDA repository GPG key identifier
-# Update this if NVIDIA rotates their signing key
-cuda_repo_gpgkey_id: "73CD9B30"
-
-# CUDA toolkit packages
-# Note: cuDNN and NCCL are not in NVIDIA's CUDA repo for Fedora.
-# Install them separately via NVIDIA's cuDNN/NCCL downloads if needed.
-cuda_packages:
-  - "cuda-toolkit-{{ cuda_package_version }}"
-  - nvtop
-  - btop
-
-# CUDA installation path (NVIDIA packages install to /usr/local/cuda-X.Y)
-cuda_home: "/usr/local/cuda-{{ cuda_version }}"
-cuda_symlink: "/usr/local/cuda"
+cuda_repo_arch: "{{ 'sbsa' if ansible_facts['architecture'] == 'aarch64' else 'x86_64' }}"

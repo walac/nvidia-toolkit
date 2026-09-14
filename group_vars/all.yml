@@ -1,17 +1,62 @@
 ---
 # ============================================
-# Global Variables for Nvidia Toolkit Setup
+# Editable configuration (change values here only)
 # ============================================
-# These variables apply to all hosts unless overridden
-# in group-specific or host-specific variable files.
+# Role defaults keep fact-derived values (arch, paths).
+# Bump versions or package lists here, then run:
+#   ansible-playbook -K playbooks/main.yml
+#   ansible-playbook -K playbooks/maintenance/upgrade.yml
 
-# ============================================
-# CUDA Toolkit Configuration
-# ============================================
-cuda_version: "13.4"
-
-# ============================================
-# Inference Tools Configuration
-# ============================================
+# --------------------------------------------
+# Feature flags
+# --------------------------------------------
 install_inference: true
 
+# --------------------------------------------
+# Versions and repository settings
+# --------------------------------------------
+cuda_version: "13.4"
+
+# NVIDIA CUDA repos often lag Fedora. If the host is newer than this,
+# the cuda role uses this Fedora version's repository instead.
+cuda_fedora_max_version: "44"
+
+# Update when NVIDIA rotates the CUDA repo signing key.
+cuda_repo_gpgkey_id: "73CD9B30"
+
+# Ollama is always the latest GitHub release (no version pin).
+# Set install_inference to false to skip it.
+
+# --------------------------------------------
+# Package policy
+# --------------------------------------------
+# present = install missing packages (main playbook)
+# latest  = also upgrade installed packages (upgrade playbook overrides)
+package_state: present
+
+# --------------------------------------------
+# Package lists
+# --------------------------------------------
+# Include parent packages and library subpackages so dnf latest
+# upgrades the full driver stack together (no version skew).
+nvidia_driver_packages:
+  - akmod-nvidia
+  - xorg-x11-drv-nvidia
+  - xorg-x11-drv-nvidia-cuda
+  - xorg-x11-drv-nvidia-cuda-libs
+  - xorg-x11-drv-nvidia-libs
+  - xorg-x11-drv-nvidia-power
+  - nvidia-settings
+  - libvdpau
+
+# Toolkit name follows cuda_version (13.4 -> cuda-toolkit-13-4).
+cuda_packages:
+  - "cuda-toolkit-{{ cuda_version | replace('.', '-') }}"
+  - nvtop
+  - btop
+
+# --------------------------------------------
+# Derived paths (follow cuda_version; do not hardcode)
+# --------------------------------------------
+cuda_home: "/usr/local/cuda-{{ cuda_version }}"
+cuda_symlink: "/usr/local/cuda"

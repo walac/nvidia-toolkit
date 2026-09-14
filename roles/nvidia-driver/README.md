@@ -16,20 +16,7 @@ Installs Nvidia proprietary drivers from RPM Fusion on Fedora systems.
 
 ## Role Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `nvidia_driver_packages` | See defaults | List of packages to install |
-
-### Default Packages
-
-```yaml
-nvidia_driver_packages:
-  - akmod-nvidia
-  - xorg-x11-drv-nvidia-cuda
-  - xorg-x11-drv-nvidia-power
-  - nvidia-settings
-  - libvdpau
-```
+Editable values (`nvidia_driver_packages`, `package_state`) are in `group_vars/all.yml`.
 
 ## Dependencies
 

@@ -24,9 +24,9 @@
       debug:
         msg:
           - "Starting Nvidia Toolkit Setup"
-          - "Target OS: {{ ansible_distribution }} {{ ansible_distribution_version }}"
-          - "Python: {{ ansible_python_version }}"
-          - "Architecture: {{ ansible_architecture }}"
+          - "Target OS: {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}"
+          - "Python: {{ ansible_facts['python_version'] }}"
+          - "Architecture: {{ ansible_facts['architecture'] }}"
       tags: always
 
     - name: Pre-flight checks
@@ -60,7 +60,7 @@
 
     # Phase 3: Inference Stack
     - role: inference-stack
-      when: install_inference | default(true)
+      when: install_inference
       tags: ["inference", "ollama"]
 
   post_tasks:
@@ -71,7 +71,7 @@
           - "Nvidia Toolkit Setup Complete"
           - "=========================================="
           - "CUDA Version: {{ cuda_version }}"
-          - "Inference Tools: {{ 'Installed' if (install_inference | default(true)) else 'Skipped' }}"
+          - "Inference Tools: {{ 'Installed (latest Ollama)' if install_inference else 'Skipped' }}"
           - ""
           - "Next Steps:"
           - "  1. Verify GPU access: nvidia-smi"

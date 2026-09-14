@@ -4,9 +4,10 @@ Installs Ollama for local LLM inference with GPU acceleration.
 
 ## What It Does
 
-- Queries the GitHub API for the latest Ollama release
+- Queries the GitHub API for the latest Ollama release (no version pin)
 - Compares against the installed version (if any)
 - Installs or upgrades Ollama using the official install script
+- Toggle with `install_inference` in `group_vars/all.yml`
 
 ## Requirements
 

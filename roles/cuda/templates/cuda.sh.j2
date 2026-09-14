@@ -1,5 +1,5 @@
 # {{ ansible_managed }}
-# CUDA environment variables for {{ ansible_hostname }}
+# CUDA environment variables for {{ ansible_facts['hostname'] }}
 
 export CUDA_HOME={{ cuda_home }}
 export PATH=$PATH:$CUDA_HOME/bin

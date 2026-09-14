@@ -1,91 +1,55 @@
 ---
 # ============================================
-# Upgrade Playbook: Nvidia Drivers and CUDA
+# Upgrade Playbook: Nvidia Drivers, CUDA, Ollama
 # ============================================
-# This playbook safely upgrades Nvidia drivers,
-# CUDA toolkit, and related components
+# Applies package upgrades using the lists and versions in
+# group_vars/all.yml. CUDA stream follows cuda_version; Ollama
+# is always refreshed to the latest GitHub release.
 #
 # Usage:
-#   ansible-playbook playbooks/maintenance/upgrade.yml
+#   ansible-playbook -K playbooks/maintenance/upgrade.yml
 #
-# NOTE: A manual reboot may be required if driver
-# updates are installed
+# NOTE: A manual reboot may be required if driver packages change.
 # ============================================
 
 - name: Upgrade Nvidia GPU Stack
   hosts: all
   become: true
   gather_facts: true
+  vars:
+    package_state: latest
 
-  tasks:
+  pre_tasks:
     - name: Update DNF cache
-      dnf:
+      ansible.builtin.dnf:
         update_cache: true
 
-    - name: Upgrade Nvidia driver packages
-      dnf:
-        name:
-          - akmod-nvidia
-          - xorg-x11-drv-nvidia
-          - xorg-x11-drv-nvidia-cuda
-          - xorg-x11-drv-nvidia-cuda-libs
-          - xorg-x11-drv-nvidia-libs
-          - xorg-x11-drv-nvidia-power
-          - nvidia-settings
-        state: latest
-      register: driver_upgrade
+  roles:
+    - role: nvidia-driver
+      tags: ["driver", "nvidia"]
 
-    - name: Upgrade CUDA packages
-      dnf:
-        name:
-          - "cuda-toolkit-*"
-        state: latest
-      register: cuda_upgrade
+    - role: cuda
+      tags: ["cuda", "toolkit"]
 
-    - name: Rebuild akmods if driver was upgraded
-      command: akmods --force
-      when: driver_upgrade.changed
-      register: akmods_rebuild
-      changed_when: "'Rebuilding' in akmods_rebuild.stdout or 'Building' in akmods_rebuild.stdout"
-
-    - name: Display akmods rebuild status
-      debug:
-        msg: "{{ akmods_rebuild.stdout_lines }}"
-      when: akmods_rebuild is defined and akmods_rebuild is changed
-
-    - name: Upgrade Ollama
-      include_role:
-        name: inference-stack
-      when: install_inference | default(true)
+    - role: inference-stack
+      when: install_inference
+      tags: ["inference", "ollama"]
 
   post_tasks:
-    - name: Check if reboot is required
-      set_fact:
-        reboot_required:
-          "{{ driver_upgrade.changed or (akmods_rebuild is defined and akmods_rebuild is changed) }}"
-
-    - name: Display reboot instruction
-      debug:
-        msg:
-          - "################################################################"
-          - "# REBOOT REQUIRED                                              #"
-          - "#                                                              #"
-          - "# Driver or kernel modules were updated.                       #"
-          - "# Please MANUALLY reboot the system to apply these changes.    #"
-          - "################################################################"
-      when: reboot_required
-
     - name: Display upgrade summary
-      debug:
+      ansible.builtin.debug:
         msg:
           - "=========================================="
           - "Nvidia GPU Stack Upgrade Complete"
           - "=========================================="
-          - "Driver upgraded: {{ 'Yes' if driver_upgrade.changed else 'No (already latest)' }}"
-          - "CUDA upgraded: {{ 'Yes' if cuda_upgrade.changed else 'No (already latest)' }}"
-          - "Reboot required: {{ 'Yes' if reboot_required else 'No' }}"
+          - "CUDA target version: {{ cuda_version }}"
+          - "Inference: {{ 'latest Ollama release' if install_inference else 'skipped' }}"
+          - ""
+          - "If the nvidia-driver role reported a package change,"
+          - "reboot manually so the new kernel modules load."
           - ""
           - "Verify installation:"
           - "  nvidia-smi"
           - "  nvcc --version"
+          - "  ollama list"
           - "=========================================="

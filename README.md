@@ -31,14 +31,24 @@ ansible-playbook playbooks/main.yml --tags cuda        # CUDA toolkit
 ansible-playbook playbooks/main.yml --tags inference   # Inference tools
 ```
 
+## Configuration
+
+All versions, package lists, and feature flags live in `group_vars/all.yml`. Change values
+there only, then apply:
+
+```bash
+ansible-playbook -K playbooks/main.yml
+ansible-playbook -K playbooks/maintenance/upgrade.yml
+```
+
+Ollama is always installed at the latest GitHub release (no version pin). Set
+`install_inference: false` to skip it.
+
 ### Fedora CUDA Repository Fallback
 
-NVIDIA's CUDA repositories often trail the latest Fedora release. This automation includes a
-fallback mechanism: if your Fedora version is newer than the available NVIDIA repositories
-(currently Fedora 44), it will automatically use the repository for the latest supported version.
-
-You can check/modify the `cuda_fedora_max_version` variable in `roles/cuda/defaults/main.yml`
-when NVIDIA releases updated repositories.
+NVIDIA's CUDA repositories often trail the latest Fedora release. If your Fedora version is
+newer than `cuda_fedora_max_version` in `group_vars/all.yml`, the cuda role uses that Fedora
+version's repository instead. Update the same file when NVIDIA publishes newer repos.
 
 ## Post-Installation Validation
 

@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: MIT-0
 ---
-# tasks file for inference-stack
+# Ollama is always the latest GitHub release (no version pin).
+# Toggle with install_inference in group_vars/all.yml.
 
 - name: Query latest Ollama release from GitHub
   uri:
@@ -9,16 +10,21 @@
     headers:
       Accept: application/vnd.github+json
   register: ollama_latest_release
+  check_mode: false
 
 - name: Set latest Ollama version
   set_fact:
     ollama_version: "{{ ollama_latest_release.json.tag_name | regex_replace('^v', '') }}"
+  when:
+    - ollama_latest_release.json is defined
+    - ollama_latest_release.json.tag_name is defined
 
 - name: Check installed Ollama version
   command: ollama --version
   register: ollama_installed_version
   changed_when: false
   failed_when: false
+  check_mode: false
 
 - name: Determine if Ollama install or upgrade is needed
   set_fact:
@@ -28,11 +34,18 @@
            ollama_installed_version.stdout | default('') | regex_search('[0-9]+\.[0-9]+\.[0-9]+') | default('0.0.0'),
            '>'
          ) }}
+  when: ollama_version is defined
+
+- name: Download Ollama installer
+  get_url:
+    url: https://ollama.com/install.sh
+    dest: /tmp/ollama-install.sh
+    mode: "0755"
+    force: true
+  when: ollama_needs_install | default(false)
 
 - name: Install or upgrade Ollama
-  shell:
-    cmd: curl -fsSL https://ollama.com/install.sh | sh
-  when: ollama_needs_install
+  command: /tmp/ollama-install.sh
+  when: ollama_needs_install | default(false)
   register: ollama_install
   changed_when: ollama_install.rc == 0
-

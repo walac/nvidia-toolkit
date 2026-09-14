@@ -5,21 +5,21 @@
 - name: Display CUDA installation information
   debug:
     msg:
-      - "Installing CUDA {{ cuda_version }} on {{ ansible_distribution }} {{
-        ansible_distribution_version }}"
+      - "Installing CUDA {{ cuda_version }} on {{ ansible_facts['distribution'] }} {{
+        ansible_facts['distribution_version'] }}"
       - "CUDA Home will be: {{ cuda_home }}"
 
 - name: Set distribution-specific CUDA repository paths
   set_fact:
-    cuda_dist_id: "{{ 'fedora' if ansible_distribution == 'Fedora' else 'rhel' }}"
+    cuda_dist_id: "{{ 'fedora' if ansible_facts['distribution'] == 'Fedora' else 'rhel' }}"
     # Fedora version fallback: use max supported version if current is newer
-    cuda_dist_version: "{{ cuda_fedora_max_version if (ansible_distribution == 'Fedora' and (ansible_distribution_major_version | int) > (cuda_fedora_max_version | int)) else ansible_distribution_major_version }}"
+    cuda_dist_version: "{{ cuda_fedora_max_version if (ansible_facts['distribution'] == 'Fedora' and (ansible_facts['distribution_major_version'] | int) > (cuda_fedora_max_version | int)) else ansible_facts['distribution_major_version'] }}"
 
 - name: Display repository information
   debug:
     msg:
       "Using CUDA repository for {{ cuda_dist_id }}{{ cuda_dist_version }} (running on {{
-      ansible_distribution }} {{ ansible_distribution_major_version }})"
+      ansible_facts['distribution'] }} {{ ansible_facts['distribution_major_version'] }})"
 
 - name: Add Nvidia CUDA Repository
   yum_repository:
@@ -36,13 +36,25 @@
 - name: Update DNF cache for CUDA repository
   dnf:
     update_cache: true
-  when: cuda_repo is changed
+  when: cuda_repo is changed or package_state == "latest"
 
 - name: Install CUDA Toolkit
   dnf:
     name: "{{ cuda_packages }}"
-    state: present
+    state: "{{ package_state }}"
   register: cuda_install
+
+- name: Collect installed package facts
+  package_facts:
+    manager: rpm
+
+- name: Remove CUDA toolkit streams that do not match cuda_version
+  dnf:
+    name: "{{ item }}"
+    state: absent
+    autoremove: true
+  loop: "{{ ansible_facts.packages | list | select('match', '^cuda-toolkit-[0-9]+-[0-9]+$') | list }}"
+  when: item != ('cuda-toolkit-' ~ (cuda_version | replace('.', '-')))
 
 - name: Create CUDA symlink
   file:

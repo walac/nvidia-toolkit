@@ -5,16 +5,15 @@
 - name: Verify this is a RedHat-based system
   fail:
     msg:
-      "This role currently only supports RedHat/Fedora/Rocky systems. Detected: {{ ansible_os_family
-      }}"
-  when: ansible_os_family != 'RedHat'
+      "This role currently only supports RedHat/Fedora/Rocky systems. Detected: {{ ansible_facts['os_family'] }}"
+  when: ansible_facts['os_family'] != 'RedHat'
 
 - name: Display system information
   debug:
     msg:
-      - "Installing Nvidia drivers on {{ ansible_distribution }} {{ ansible_distribution_version }}"
-      - "Kernel version: {{ ansible_kernel }}"
-      - "Architecture: {{ ansible_architecture }}"
+      - "Installing Nvidia drivers on {{ ansible_facts['distribution'] }} {{ ansible_facts['distribution_version'] }}"
+      - "Kernel version: {{ ansible_facts['kernel'] }}"
+      - "Architecture: {{ ansible_facts['architecture'] }}"
 
 - name: Install kernel development packages
   dnf:
@@ -29,13 +28,13 @@
 
 - name: Set distribution-specific repository paths
   set_fact:
-    repo_dist_id: "{{ 'fedora' if ansible_distribution == 'Fedora' else 'el' }}"
+    repo_dist_id: "{{ 'fedora' if ansible_facts['distribution'] == 'Fedora' else 'el' }}"
 
 - name: Enable RPM Fusion Free repository
   dnf:
     name:
       "https://mirrors.rpmfusion.org/free/{{ repo_dist_id }}/rpmfusion-free-release-{{
-      ansible_distribution_major_version }}.noarch.rpm"
+      ansible_facts['distribution_major_version'] }}.noarch.rpm"
     state: present
     disable_gpg_check: true
   retries: 3
@@ -47,7 +46,7 @@
   dnf:
     name:
       "https://mirrors.rpmfusion.org/nonfree/{{ repo_dist_id }}/rpmfusion-nonfree-release-{{
-      ansible_distribution_major_version }}.noarch.rpm"
+      ansible_facts['distribution_major_version'] }}.noarch.rpm"
     state: present
     disable_gpg_check: true
   retries: 3
@@ -58,8 +57,10 @@
 - name: Install Nvidia driver packages from RPM Fusion
   dnf:
     name: "{{ nvidia_driver_packages }}"
-    state: present
-    enablerepo: rpmfusion-nonfree*
+    state: "{{ package_state }}"
+    enablerepo:
+      - rpmfusion-nonfree
+      - rpmfusion-nonfree-updates
   register: nvidia_install
 
 - name: Wait for akmods to build kernel modules
@@ -102,7 +103,7 @@
 
 - name: Check if nvidia kernel module exists
   find:
-    paths: "/lib/modules/{{ ansible_kernel }}"
+    paths: "/lib/modules/{{ ansible_facts['kernel'] }}"
     patterns: "nvidia.ko*"
     recurse: true
     file_type: file
